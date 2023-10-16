@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../components/main.dart';
+import '../component/header.dart';
 
 class AuthPage extends StatelessWidget {
   final counter = 0.obs;
@@ -14,13 +13,35 @@ class AuthPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const H1(text: "CoTally"),
-            TextField(
-              decoration: InputDecoration(
-                hintText: "hi",
-                border: OutlineInputBorder(),
-              ),
-            ).marginAll(10),
-            Counter(),
+            ListView(
+              children: [
+                TextField(
+                  onSubmitted: (value) {},
+                  decoration: const InputDecoration(
+                    hintText: "Gitee Access Token",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(30)),
+                    ),
+                  ),
+                ),
+                ButtonBar(
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {},
+                      child: const Text("submit"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {},
+                      child: const Text("submit"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {},
+                      child: const Text("submit"),
+                    ),
+                  ],
+                )
+              ],
+            ).marginOnly(top: 20, left: 20, right: 20)
           ],
         ),
       ),
