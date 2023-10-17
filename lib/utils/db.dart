@@ -12,6 +12,10 @@ class DB {
     return instance;
   }
   String basePath = '';
+
+  File get pubKeyFile {
+    return File(join(basePath, ".keys", "rsa.pub"));
+  }
 }
 
 // void main() {

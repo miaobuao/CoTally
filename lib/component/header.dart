@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class H1 extends StatelessWidget {
   final String text;
 
-  const H1({super.key, required this.text});
+  const H1(this.text, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +14,7 @@ class H1 extends StatelessWidget {
 class H2 extends StatelessWidget {
   final String text;
 
-  const H2({super.key, required this.text});
+  const H2(this.text, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class H2 extends StatelessWidget {
 class H3 extends StatelessWidget {
   final String text;
 
-  const H3({super.key, required this.text});
+  const H3(this.text, {super.key});
 
   @override
   Widget build(BuildContext context) {

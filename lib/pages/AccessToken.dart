@@ -16,7 +16,7 @@ class AccessTokenPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            H1(text: "CoTally".i18n),
+            H1("CoTally".i18n),
             TextField(
               onChanged: (value) {
                 acccessToken = value;
