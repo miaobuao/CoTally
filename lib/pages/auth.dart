@@ -102,6 +102,7 @@ class InputPasswordView extends StatelessWidget {
     pwd2 = '';
     stepperIndex.value = 0;
     delayedFocus(firstFocusNode, milliseconds: 100);
+    toast.clear();
   }
 
   void onContinue() {
@@ -129,6 +130,7 @@ class InputPasswordView extends StatelessWidget {
       }
       secondController.clear();
       secondFocusNode.unfocus();
+      toast.add("完成".i18n, type: ToastType.success);
       onSubmit();
     }
   }

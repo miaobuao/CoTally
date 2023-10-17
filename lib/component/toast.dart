@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:styled_widget/styled_widget.dart';
+import '../utils/duration_extension.dart';
 
 enum ToastType {
   info,
@@ -45,27 +48,58 @@ class useToast {
   }
 
   late BuildContext context;
-  RxList<Widget> _list = RxList<Widget>([]);
+  final RxList<Widget> _list = RxList<Widget>([]);
   Duration defaultDuration = const Duration(seconds: 3);
+  Duration refreshDuration = const Duration(milliseconds: 50);
 
-  void add(String msg, {ToastType? type, Duration? duration}) {
+  void add(
+    String msg, {
+    ToastType? type,
+    Duration? duration,
+    Duration? refresh,
+    double? opacity,
+  }) {
     final (front, bg) = StatusColorMap[type] ?? (Colors.blue, Colors.blue[50]);
+
+    final progressPercent = .0.obs;
+    duration ??= defaultDuration;
+    refresh ??= refreshDuration;
+    final diff = refresh / duration;
+
     final item = Card(
       color: bg,
-      child: Row(children: [
-        Icon(
-          StatusIconMap[type],
-          color: front,
+      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Row(
+          children: [
+            Icon(
+              StatusIconMap[type],
+              color: front,
+            ),
+            Text(
+              msg,
+              style: TextStyle(color: front),
+            ).marginOnly(left: 10),
+          ],
         ),
-        Text(
-          msg,
-          style: TextStyle(color: front),
-        ).marginOnly(left: 10)
-      ]).marginAll(4).paddingAll(2),
-    ).marginOnly(top: 4).marginSymmetric(horizontal: 10).opacity(0.95);
-    Future.delayed(duration ?? defaultDuration, () {
-      _list.remove(item);
+        SizedBox(
+            child: Obx(
+          () => CircularProgressIndicator(
+            backgroundColor: Colors.grey[200],
+            valueColor: AlwaysStoppedAnimation(front),
+            value: progressPercent.value,
+          ),
+        ))
+      ]).paddingAll(4),
+    ).marginOnly(top: 4).marginSymmetric(horizontal: 10).opacity(opacity ?? 1);
+
+    Timer.periodic(refresh, (timer) {
+      progressPercent.value += diff;
+      if (progressPercent.value >= 1) {
+        timer.cancel();
+        _list.remove(item);
+      }
     });
+
     _list.add(item);
   }
 

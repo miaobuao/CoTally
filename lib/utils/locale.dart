@@ -20,5 +20,6 @@ extension Localization on String {
       tt("Password", "密码") +
       tt("Encryption Settings", "加密设置") +
       tt("Cannot be empty", "不可为空") +
-      tt("The passwords entered twice are not the same", "两次输入的密码不相同");
+      tt("The passwords entered twice are not the same", "两次输入的密码不相同") +
+      tt("Done", "完成");
 }
