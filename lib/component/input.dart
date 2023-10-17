@@ -15,6 +15,7 @@ class BorderedTextFieldStyle extends InputDecoration {
 class Input extends TextField {
   Input({
     super.key,
+    super.decoration,
     ValueChanged<String>? onSubmitted,
     ValueChanged<String>? onChanged,
     RxString? value,
