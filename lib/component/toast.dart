@@ -50,7 +50,7 @@ class useToast {
   late BuildContext context;
   final RxList<Widget> _list = RxList<Widget>([]);
   Duration defaultDuration = const Duration(seconds: 3);
-  Duration refreshDuration = const Duration(milliseconds: 50);
+  Duration refreshDuration = const Duration(milliseconds: 100);
 
   void add(
     String msg, {
@@ -82,14 +82,16 @@ class useToast {
           ],
         ),
         SizedBox(
+            width: 20,
+            height: 20,
             child: Obx(
-          () => CircularProgressIndicator(
-            backgroundColor: Colors.grey[200],
-            valueColor: AlwaysStoppedAnimation(front),
-            value: progressPercent.value,
-          ),
-        ))
-      ]).paddingAll(4),
+              () => CircularProgressIndicator(
+                backgroundColor: Colors.grey[200],
+                valueColor: AlwaysStoppedAnimation(front),
+                value: progressPercent.value,
+              ),
+            ))
+      ]).paddingAll(6),
     ).marginOnly(top: 4).marginSymmetric(horizontal: 10).opacity(opacity ?? 1);
 
     Timer.periodic(refresh, (timer) {
