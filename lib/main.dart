@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import "package:i18n_extension/i18n_widget.dart";
 import './pages/auth.dart';
 
 void main() {
@@ -14,7 +15,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       initialRoute: '/auth',
       getPages: [
-        GetPage(name: '/auth', page: () => AuthPage()),
+        GetPage(name: '/auth', page: () => I18n(child: AuthPage())),
         // GetPage(name: '/main', page: () => MyHomePage(title: "title"))
       ],
       theme: ThemeData(
