@@ -40,12 +40,12 @@ class MyApp extends StatelessWidget {
             fontSize: 32,
           ),
           displayMedium: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 18.72,
+            fontWeight: FontWeight.w800,
+            fontSize: 24,
           ),
           displaySmall: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 13.28,
+            fontWeight: FontWeight.w700,
+            fontSize: 18.72,
           ),
         ),
       ),

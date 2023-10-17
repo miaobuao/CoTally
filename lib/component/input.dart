@@ -26,6 +26,9 @@ class Input extends TextField {
     double? borderRadius,
     super.keyboardType,
     super.obscureText,
+    super.controller,
+    super.autofocus,
+    super.focusNode,
   }) : super(
           style: const TextStyle(
             fontSize: 20,
