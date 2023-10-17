@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import "package:i18n_extension/i18n_widget.dart";
 import 'package:path_provider/path_provider.dart';
-import 'pages/AccessToken.dart';
-import "pages/Auth.dart";
+import 'pages/access_token.dart';
+import 'pages/auth.dart';
 import 'utils/db.dart';
 
 void main() async {

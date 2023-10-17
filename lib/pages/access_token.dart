@@ -1,3 +1,4 @@
+import 'package:cotally/component/input.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:i18n_extension/default.i18n.dart';
@@ -17,17 +18,8 @@ class AccessTokenPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             H1("CoTally".i18n),
-            TextField(
-              onChanged: (value) {
-                acccessToken = value;
-              },
-              onSubmitted: (value) {},
-              decoration: const InputDecoration(
-                hintText: "Gitee Access Token",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(30)),
-                ),
-              ),
+            Input(
+              hint: "Gitee Access Token",
             ).marginOnly(top: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,

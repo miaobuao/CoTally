@@ -1,4 +1,5 @@
 import 'package:cotally/component/header.dart';
+import 'package:cotally/component/input.dart';
 import 'package:cotally/utils/db.dart';
 import 'package:cotally/utils/locale.dart';
 import 'package:flutter/material.dart';
@@ -34,10 +35,18 @@ class InputPasswordView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          H2("text".i18n),
-          TextField(),
+          Row(
+            children: [
+              H2("please ".i18n),
+            ],
+          ),
+          Input(
+            hint: "hin",
+            keyboardType: TextInputType.visiblePassword,
+            obscureText: true,
+          ).marginOnly(top: 20),
         ],
-      ),
+      ).paddingSymmetric(horizontal: 20),
     );
   }
 }
