@@ -34,7 +34,8 @@ class InputPasswordView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          H1("text".i18n),
+          H2("text".i18n),
+          TextField(),
         ],
       ),
     );
