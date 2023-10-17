@@ -1,3 +1,4 @@
+import 'component/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import "package:i18n_extension/i18n_widget.dart";
@@ -22,13 +23,13 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       initialRoute: '/auth',
       getPages: [
-        GetPage(
-          name: '/auth',
-          page: () => I18n(child: AuthPage()),
+        routerWrapper(
+          '/auth',
+          AuthPage(),
         ),
-        GetPage(
-          name: '/access_token',
-          page: () => I18n(child: AccessTokenPage()),
+        routerWrapper(
+          '/access_token',
+          AccessTokenPage(),
         ),
       ],
       theme: ThemeData(
@@ -51,4 +52,13 @@ class MyApp extends StatelessWidget {
       ),
     );
   }
+}
+
+dynamic routerWrapper(String name, Widget page) {
+  return GetPage(
+      name: name,
+      page: () => I18n(
+              child: ToastPage(
+            child: page,
+          )));
 }

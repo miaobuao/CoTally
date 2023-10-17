@@ -15,8 +15,10 @@ extension Localization on String {
   String get i18n => localize(this, t);
   static var t = Translations("zh_cn") +
       tt("CoTally", "一起来记账") +
-      tt("Enter the password once.", '请输入一次密码') +
-      tt("Enter the password again.", "请再输入一次密码") +
+      tt("Enter the password once", '请输入一次密码') +
+      tt("Enter the password again", "请再输入一次密码") +
       tt("Password", "密码") +
-      tt("Encryption Settings", "加密设置");
+      tt("Encryption Settings", "加密设置") +
+      tt("Cannot be empty", "不可为空") +
+      tt("The passwords entered twice are not the same", "两次输入的密码不相同");
 }
