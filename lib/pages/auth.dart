@@ -1,5 +1,8 @@
 // ignore_for_file: must_be_immutable
 
+import 'dart:async';
+
+import 'package:cotally/component/button.dart';
 import 'package:cotally/component/header.dart';
 import 'package:cotally/component/input.dart';
 import 'package:cotally/component/toast.dart';
@@ -11,14 +14,28 @@ import 'dart:io';
 
 import 'package:get/get.dart';
 
-class AuthPage extends StatelessWidget {
-  late File pubKeyFile;
+class AuthPage extends StatefulWidget {
+  const AuthPage({super.key});
+  @override
+  State<AuthPage> createState() => _AuthPageState();
+}
+
+class _AuthPageState extends State<AuthPage> {
   final pubKeyFileExists = false.obs;
-  String password = '';
-  AuthPage({super.key}) {
-    final db = DB();
-    pubKeyFile = db.pubKeyFile;
-    pubKeyFileExists.value = pubKeyFile.existsSync();
+
+  @override
+  void initState() {
+    Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (DB().pubKeyFile.existsSync()) {
+        pubKeyFileExists.value = true;
+      } else {
+        pubKeyFileExists.value = false;
+      }
+      if (!mounted) {
+        timer.cancel();
+      }
+    });
+    super.initState();
   }
 
   @override
@@ -135,7 +152,12 @@ class InputPasswordView extends StatelessWidget {
     }
   }
 
-  void onSubmit() {}
+  void onSubmit() {
+    final db = DB();
+    if (pwd1 == pwd2 && pwd1.isNotEmpty) {
+      db.registerPassword(pwd1);
+    }
+  }
 }
 
 class VerifyView extends StatelessWidget {
@@ -143,6 +165,19 @@ class VerifyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Scaffold(
+      body: Center(
+          child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          H2("身份验证".i18n).marginOnly(bottom: 20),
+          Input(
+            onChanged: (value) {},
+            obscureText: true,
+          ),
+          ButtonGroup(buttons: Buttons.submit | Buttons.reset | Buttons.cancel)
+        ],
+      )).paddingSymmetric(horizontal: 20),
+    );
   }
 }
