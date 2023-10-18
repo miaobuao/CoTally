@@ -63,7 +63,7 @@ class ButtonGroup extends StatelessWidget {
     }
     if (buttons & Buttons.cancel != 0) {
       list.add(CancelButton(
-        onPressed: onSubmit,
+        onPressed: onCancel,
         child: Text("取消".i18n),
       ));
     }

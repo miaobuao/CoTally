@@ -1,15 +1,17 @@
 import 'package:cotally/component/button.dart';
 import 'package:cotally/component/input.dart';
+import 'package:cotally/component/toast.dart';
 import 'package:cotally/utils/db.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:i18n_extension/default.i18n.dart';
+import '../utils/locale.dart';
 import '../component/header.dart';
 
 class AccessTokenPage extends StatelessWidget {
   AccessTokenPage({super.key});
 
   final tokenFieldController = TextEditingController();
+  final usernameController = TextEditingController();
 
   String org = 'gitee';
 
@@ -22,15 +24,19 @@ class AccessTokenPage extends StatelessWidget {
           children: [
             H1("CoTally".i18n),
             Input(
+              hint: "用户名".i18n,
+              controller: usernameController,
+            ).marginOnly(top: 20),
+            Input(
               hint: "Gitee Access Token",
               controller: tokenFieldController,
-            ).marginOnly(top: 20),
+            ).marginOnly(top: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 const Spacer(),
                 ButtonGroup(
-                  buttons: Buttons.submit | Buttons.reset,
+                  buttons: Buttons.submit,
                   onSubmit: onSubmit,
                 ),
               ],
@@ -43,8 +49,20 @@ class AccessTokenPage extends StatelessWidget {
 
   void onSubmit() {
     final token = tokenFieldController.text;
+    if (token.isEmpty) {
+      toast.add("Access Token不可为空".i18n, type: ToastType.warning);
+      return;
+    }
     final db = DB();
-    db.remoteRepo.add(org, token);
+    String username = usernameController.text;
+    if (username.isEmpty) {
+      username = "用户 ".i18n + DateTime.now().toIso8601String();
+    }
+    db.remoteRepo.add(
+      org: org,
+      accessToken: token,
+      username: usernameController.text,
+    );
     Get.offAllNamed("/home");
   }
 }

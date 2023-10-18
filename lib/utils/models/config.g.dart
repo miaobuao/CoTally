@@ -23,11 +23,15 @@ RemoteRepoData _$RemoteRepoDataFromJson(Map<String, dynamic> json) =>
       org: json['org'] as String,
       accessToken: json['accessToken'] as String,
       updateTime: DateTime.parse(json['updateTime'] as String),
+      username: json['username'] as String,
+      id: json['id'] as String,
     );
 
 Map<String, dynamic> _$RemoteRepoDataToJson(RemoteRepoData instance) =>
     <String, dynamic>{
       'org': instance.org,
       'accessToken': instance.accessToken,
+      'username': instance.username,
+      'id': instance.id,
       'updateTime': instance.updateTime.toIso8601String(),
     };

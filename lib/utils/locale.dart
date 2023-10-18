@@ -17,6 +17,8 @@ extension Localization on String {
     ("Confirm", "确认"),
     ("Cancel", "取消"),
     ("Reset", "重置"),
+    ("User", "用户"),
+    ("Access Token cannot be empty", "Access Token不可为空"),
   ]);
 }
 

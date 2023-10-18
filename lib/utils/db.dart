@@ -11,6 +11,9 @@ import 'package:sqlite3/open.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:bcrypt/bcrypt.dart';
+import 'package:uuid/uuid.dart';
+
+final uuid = Uuid();
 
 class DB {
   DB._();
@@ -88,11 +91,17 @@ class RemoteRepo {
     }
   }
 
-  add(String org, String accessToken) {
+  add({
+    required String org,
+    required String accessToken,
+    required String username,
+  }) {
     config.repos.add(RemoteRepoData(
       org: org,
       accessToken: accessToken,
       updateTime: DateTime.now(),
+      username: username,
+      id: uuid.v1(),
     ));
     save();
   }

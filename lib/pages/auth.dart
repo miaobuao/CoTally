@@ -31,6 +31,7 @@ class _AuthPageState extends State<AuthPage> {
         timer.cancel();
       }
     });
+    pubKeyFileExists.value = DB().pubKeyFile.existsSync();
     super.initState();
   }
 
