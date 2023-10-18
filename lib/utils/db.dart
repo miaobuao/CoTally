@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:convert' as convert;
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:cotally/utils/models/config.dart';
+import 'package:encrypt/encrypt.dart';
 import 'package:get/get.dart';
 import 'package:path/path.dart';
 import 'package:sqlite3/open.dart';
@@ -15,25 +18,35 @@ class DB {
   factory DB() {
     return instance;
   }
-  late String _basePath;
-  String? pwd;
-  late final RemoteRepo remoteRepo = RemoteRepo.get(db: this);
 
-  set basePath(String value) {
-    _basePath = value;
+  void prepare() {
     remoteRepo.reload();
   }
 
-  String get basePath {
-    return _basePath;
+  late String basePath;
+  static const passwordLength = 32;
+  String _pwd = "";
+
+  Uint8List get pwd {
+    var list = Uint8List.fromList(convert.utf8.encode(_pwd));
+    return Uint8List.fromList(
+        [...list, ...Uint8List(passwordLength - list.length)]);
   }
 
+  setPwd(String value) {
+    if (_pwd == value) return;
+    _pwd = value;
+    prepare();
+  }
+
+  late final RemoteRepo remoteRepo = RemoteRepo.get(db: this);
+
   File get pubKeyFile {
-    return File(join(_basePath, "key.pub"));
+    return File(join(basePath, "key.pub"));
   }
 
   Future registerPassword(String password) async {
-    pwd = password;
+    setPwd(password);
     final String hashed = BCrypt.hashpw(password, BCrypt.gensalt());
     await pubKeyFile.writeAsString(hashed);
   }
@@ -42,7 +55,7 @@ class DB {
     if (!pubKeyFile.existsSync()) return false;
     final hashed = pubKeyFile.readAsStringSync();
     if (BCrypt.checkpw(password, hashed)) {
-      pwd = password;
+      setPwd(password);
       return true;
     }
     return false;
@@ -57,7 +70,7 @@ class RemoteRepo {
   }
 
   late final DB db;
-  final List<RemoteRepoData> repos = [];
+  late var config = RemoteRepoConfig(repos: []);
 
   RemoteRepo.get({required this.db});
 
@@ -66,16 +79,51 @@ class RemoteRepo {
   }
 
   reload() {
-    if (db.pwd != null && file.existsSync()) {
-      file.readAsBytes();
+    if (db.pwd.isNotEmpty && file.existsSync()) {
+      file.readAsString().then((data) {
+        final decrypted = decryptByPwd(db.pwd, data);
+        final json = convert.jsonDecode(decrypted);
+        config = RemoteRepoConfig.fromJson(json);
+      });
     }
   }
-  // add() {
-  //   _repo.add();
-  // }
+
+  add(String org, String accessToken) {
+    config.repos.add(RemoteRepoData(
+      org: org,
+      accessToken: accessToken,
+      updateTime: DateTime.now(),
+    ));
+    save();
+  }
+
+  Future<File> save() {
+    final data = convert.jsonEncode(config);
+    final encrypted = encryptByPwd(db.pwd, data);
+    return file.writeAsString(encrypted);
+  }
 }
 
+(Encrypter, IV) generateEncrypter(Uint8List pwd, {String? iv}) {
+  return (
+    Encrypter(AES(Key(pwd), mode: AESMode.cbc)),
+    iv == null ? IV.fromLength(16) : IV.fromBase64(iv),
+  );
+}
 
+String encryptByPwd(Uint8List pwd, String plainText) {
+  final (encrypter, iv) = generateEncrypter(pwd);
+  final encrypted = encrypter.encrypt(plainText, iv: iv);
+  return "${iv.base64}.${encrypted.base64}";
+}
+
+String decryptByPwd(Uint8List pwd, String encrypted) {
+  final splitted = encrypted.split(".");
+  encrypted = splitted[1];
+  final (encrypter, iv) = generateEncrypter(pwd, iv: splitted[0]);
+  final decrypted = encrypter.decrypt(Encrypted.fromBase64(encrypted), iv: iv);
+  return decrypted;
+}
 
 // void main() {
 //   open.overrideFor(OperatingSystem.linux, _openOnLinux);

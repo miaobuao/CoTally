@@ -4,6 +4,7 @@ extension Localization on String {
   String get i18n => localize(this, t);
   static var t = translations("zh_cn", [
     ("CoTally", "一起来记账"),
+    ("Enter your password", '请输入密码'),
     ("Enter the password once", '请输入一次密码'),
     ("Enter the password again", "请再输入一次密码"),
     ("Password", "密码"),

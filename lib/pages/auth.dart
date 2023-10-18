@@ -1,6 +1,8 @@
 // ignore_for_file: must_be_immutable
-
 import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 import 'package:cotally/component/button.dart';
 import 'package:cotally/component/header.dart';
@@ -9,10 +11,6 @@ import 'package:cotally/component/toast.dart';
 import 'package:cotally/utils/db.dart';
 import 'package:cotally/utils/delay.dart';
 import 'package:cotally/utils/locale.dart';
-import 'package:flutter/material.dart';
-import 'dart:io';
-
-import 'package:get/get.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -80,6 +78,11 @@ class InputPasswordView extends StatelessWidget {
                           controller: firstController,
                           autofocus: true,
                           focusNode: firstFocusNode,
+                          maxLength: 32,
+                          inputFormatters: Aes256PwdInputFormatter,
+                          onSubmitted: (value) {
+                            onContinue();
+                          },
                         ).marginOnly(top: 10),
                       ],
                     ),
@@ -99,8 +102,13 @@ class InputPasswordView extends StatelessWidget {
                           keyboardType: TextInputType.visiblePassword,
                           obscureText: true,
                           controller: secondController,
+                          maxLength: 32,
                           autofocus: true,
+                          inputFormatters: Aes256PwdInputFormatter,
                           focusNode: secondFocusNode,
+                          onSubmitted: (value) {
+                            onContinue();
+                          },
                         ).marginOnly(top: 10),
                       ],
                     ),
@@ -161,7 +169,11 @@ class InputPasswordView extends StatelessWidget {
 }
 
 class VerifyView extends StatelessWidget {
-  const VerifyView({super.key});
+  VerifyView({super.key});
+
+  final fieldController = TextEditingController();
+  final fieldFocusNode = FocusNode();
+  String pwd = '';
 
   @override
   Widget build(BuildContext context) {
@@ -174,10 +186,49 @@ class VerifyView extends StatelessWidget {
           Input(
             onChanged: (value) {},
             obscureText: true,
+            hint: "请输入密码".i18n,
+            controller: fieldController,
+            focusNode: fieldFocusNode,
+            inputFormatters: Aes256PwdInputFormatter,
+            maxLength: 32,
+            autofocus: true,
           ),
-          ButtonGroup(buttons: Buttons.submit | Buttons.reset | Buttons.cancel)
+          Row(
+            children: [
+              const Spacer(),
+              ButtonGroup(
+                buttons: Buttons.submit | Buttons.reset,
+                onSubmit: () {
+                  pwd = fieldController.text;
+                  submit();
+                },
+                onReset: () {
+                  fieldController.clear();
+                  fieldFocusNode.requestFocus();
+                },
+              ),
+            ],
+          ).paddingOnly(top: 10)
         ],
       )).paddingSymmetric(horizontal: 20),
     );
+  }
+
+  void submit() {
+    if (pwd.isEmpty) {
+      toast.add("不可为空".i18n, type: ToastType.warning);
+      return;
+    }
+    final db = DB();
+    if (db.checkPassword(pwd)) {
+      toast.add("完成".i18n, type: ToastType.success);
+      if (db.remoteRepo.file.existsSync()) {
+      } else {
+        Get.offAllNamed("/access_token");
+      }
+    } else {
+      toast.add("认证失败".i18n, type: ToastType.error);
+    }
+    fieldController.clear();
   }
 }

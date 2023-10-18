@@ -22,7 +22,7 @@ class CancelButton extends TextButton {
   });
 }
 
-class ResetButton extends ElevatedButton {
+class ResetButton extends OutlinedButton {
   ResetButton({
     required super.onPressed,
     required super.child,
@@ -31,32 +31,34 @@ class ResetButton extends ElevatedButton {
 
 class ButtonGroup extends StatelessWidget {
   final int buttons;
-  final bool? horizontal;
+  final Axis? direction;
+  double? spacing;
   final void Function()? onSubmit;
   final void Function()? onReset;
   final void Function()? onCancel;
-  const ButtonGroup({
+  ButtonGroup({
     super.key,
     required this.buttons,
-    this.horizontal,
+    this.direction,
     this.onCancel,
     this.onSubmit,
     this.onReset,
+    this.spacing,
   });
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> list = [];
-    if (buttons & Buttons.submit != 0) {
-      list.add(SubmitButton(
-        onPressed: onSubmit,
-        child: Text("确定".i18n),
-      ));
-    }
     if (buttons & Buttons.reset != 0) {
       list.add(ResetButton(
         onPressed: onReset,
         child: Text("重置".i18n),
+      ));
+    }
+    if (buttons & Buttons.submit != 0) {
+      list.add(SubmitButton(
+        onPressed: onSubmit,
+        child: Text("确认".i18n),
       ));
     }
     if (buttons & Buttons.cancel != 0) {
@@ -65,14 +67,10 @@ class ButtonGroup extends StatelessWidget {
         child: Text("取消".i18n),
       ));
     }
-    if (horizontal ?? true) {
-      return Row(
-        children: list,
-      );
-    } else {
-      return Column(
-        children: list,
-      );
-    }
+    return Wrap(
+      spacing: spacing ?? 10,
+      direction: direction ?? Axis.horizontal,
+      children: list,
+    );
   }
 }

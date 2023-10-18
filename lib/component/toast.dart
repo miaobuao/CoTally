@@ -91,7 +91,7 @@ class useToast {
       }
     });
 
-    _list.add(item);
+    _list.insert(0, item);
   }
 
   void clear() {
