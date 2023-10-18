@@ -1,9 +1,7 @@
 // ignore_for_file: must_be_immutable
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-
 import 'package:cotally/component/button.dart';
 import 'package:cotally/component/header.dart';
 import 'package:cotally/component/input.dart';
@@ -208,7 +206,7 @@ class VerifyView extends StatelessWidget {
                 },
               ),
             ],
-          ).paddingOnly(top: 10)
+          )
         ],
       )).paddingSymmetric(horizontal: 20),
     );
@@ -223,6 +221,7 @@ class VerifyView extends StatelessWidget {
     if (db.checkPassword(pwd)) {
       toast.add("完成".i18n, type: ToastType.success);
       if (db.remoteRepo.file.existsSync()) {
+        Get.offAllNamed("/home");
       } else {
         Get.offAllNamed("/access_token");
       }

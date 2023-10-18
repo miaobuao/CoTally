@@ -11,6 +11,8 @@ class AccessTokenPage extends StatelessWidget {
 
   final tokenFieldController = TextEditingController();
 
+  String org = 'gitee';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,6 +44,7 @@ class AccessTokenPage extends StatelessWidget {
   void onSubmit() {
     final token = tokenFieldController.text;
     final db = DB();
-    db.remoteRepo.add("gitee", token);
+    db.remoteRepo.add(org, token);
+    Get.offAllNamed("/home");
   }
 }
