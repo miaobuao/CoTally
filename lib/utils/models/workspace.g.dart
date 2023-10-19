@@ -8,16 +8,14 @@ part of 'workspace.dart';
 
 WorkspaceModel _$WorkspaceModelFromJson(Map<String, dynamic> json) =>
     WorkspaceModel(
+      accessTokenId: json['accessTokenId'] as String,
       org: $enumDecode(_$OrgEnumMap, json['org']),
-      collaborators: (json['collaborators'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
     );
 
 Map<String, dynamic> _$WorkspaceModelToJson(WorkspaceModel instance) =>
     <String, dynamic>{
       'org': _$OrgEnumMap[instance.org]!,
-      'collaborators': instance.collaborators,
+      'accessTokenId': instance.accessTokenId,
     };
 
 const _$OrgEnumMap = {

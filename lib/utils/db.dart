@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:cotally/utils/constants.dart';
 import 'package:cotally/utils/models/config.dart';
 import 'package:cotally/utils/models/user.dart';
+import 'package:cotally/utils/models/workspace.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:path/path.dart';
@@ -29,6 +30,7 @@ class DB {
   late BoxCollection collection;
   late final RemoteRepo remoteRepo = RemoteRepo.bind(this);
   late final Users users = Users.bind(this);
+  late final Workspace workspace = Workspace.bind(this);
 
   void prepare() {
     remoteRepo.reload();
@@ -86,10 +88,13 @@ class Users {
   }
 }
 
-// workspace id == token id
 class Workspace {
   final DB db;
   Workspace.bind(this.db);
+
+  Future create(String workspaceId, WorkspaceModel workspace) async {
+    return (await box).put(workspaceId, workspace.toJson());
+  }
 
   Future<StringMapBox> get box {
     return db.collection.openBox("workspace");
@@ -127,16 +132,17 @@ class RemoteRepo {
       return false;
     }
     final ownerId = uuid.v1();
+    final workspaceId = uuid.v1();
     await db.users.add(ownerId, UserModel(info: owner, org: org, id: ownerId));
     config.repos.add(RemoteRepoDataModel(
       org: org,
       accessToken: accessToken,
       updateTime: DateTime.now(),
-      id: uuid.v1(),
+      id: workspaceId,
       ownerId: ownerId,
     ));
     length.value = config.repos.length;
-    save();
+    await save();
     return true;
   }
 

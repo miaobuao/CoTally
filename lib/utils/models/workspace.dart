@@ -6,11 +6,11 @@ part 'workspace.g.dart';
 @JsonSerializable(explicitToJson: true)
 class WorkspaceModel {
   final Org org;
-  final List<String> collaborators;
+  final String accessTokenId;
 
   WorkspaceModel({
+    required this.accessTokenId,
     required this.org,
-    required this.collaborators,
   });
 
   factory WorkspaceModel.fromJson(Map<String, dynamic> json) =>
