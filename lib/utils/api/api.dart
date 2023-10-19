@@ -1,5 +1,4 @@
 import 'package:cotally/utils/constants.dart';
-import 'package:cotally/utils/models/user.dart';
 
 import 'base_api.dart';
 import 'gitee.dart';
