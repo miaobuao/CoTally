@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:styled_widget/styled_widget.dart';
-import '../utils/duration_extension.dart';
 import '../style/colors.dart';
 
 enum ToastType {
@@ -53,7 +52,7 @@ class useToast {
     final progressPercent = .0.obs;
     duration ??= defaultDuration;
     refresh ??= refreshDuration;
-    final diff = refresh / duration;
+    final diff = refresh.inMilliseconds / duration.inMilliseconds;
 
     final item = Card(
       color: bg,

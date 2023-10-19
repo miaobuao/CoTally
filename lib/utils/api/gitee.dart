@@ -22,24 +22,24 @@ class GiteeApi implements BaseRepoApi {
   }
 
   @override
-  Future<UserInfo?> checkAccessToken({required String accessToken}) {
+  Future<UserInfoModel?> checkAccessToken({required String accessToken}) {
     // TODO: implement checkAccessToken
     throw UnimplementedError();
   }
 
   @override
   // https://gitee.com/api/v5/swagger#/getV5UsersUsername
-  Future<UserInfo?> getUser({required String username}) async {
+  Future<UserInfoModel?> getUser({required String username}) async {
     final url = "https://gitee.com/api/v5/users/$username";
     final response = await dio.get(url);
     if (response.statusCode == 200) {
-      return UserInfo.fromJson(response.data);
+      return UserInfoModel.fromJson(response.data);
     }
     return null;
   }
 
   @override
-  Future<List<UserInfo>> listCollaborators({
+  Future<List<UserInfoModel>> listCollaborators({
     required String owner,
     required String repo,
     int? page,

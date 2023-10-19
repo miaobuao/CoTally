@@ -6,20 +6,22 @@ part of 'config.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-RemoteRepoConfig _$RemoteRepoConfigFromJson(Map<String, dynamic> json) =>
-    RemoteRepoConfig(
+RemoteRepoConfigModel _$RemoteRepoConfigModelFromJson(
+        Map<String, dynamic> json) =>
+    RemoteRepoConfigModel(
       repos: (json['repos'] as List<dynamic>)
-          .map((e) => RemoteRepoData.fromJson(e as Map<String, dynamic>))
+          .map((e) => RemoteRepoDataModel.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
-Map<String, dynamic> _$RemoteRepoConfigToJson(RemoteRepoConfig instance) =>
+Map<String, dynamic> _$RemoteRepoConfigModelToJson(
+        RemoteRepoConfigModel instance) =>
     <String, dynamic>{
       'repos': instance.repos.map((e) => e.toJson()).toList(),
     };
 
-RemoteRepoData _$RemoteRepoDataFromJson(Map<String, dynamic> json) =>
-    RemoteRepoData(
+RemoteRepoDataModel _$RemoteRepoDataModelFromJson(Map<String, dynamic> json) =>
+    RemoteRepoDataModel(
       org: $enumDecode(_$OrgEnumMap, json['org']),
       accessToken: json['accessToken'] as String,
       updateTime: DateTime.parse(json['updateTime'] as String),
@@ -27,7 +29,8 @@ RemoteRepoData _$RemoteRepoDataFromJson(Map<String, dynamic> json) =>
       ownerId: json['ownerId'] as String,
     );
 
-Map<String, dynamic> _$RemoteRepoDataToJson(RemoteRepoData instance) =>
+Map<String, dynamic> _$RemoteRepoDataModelToJson(
+        RemoteRepoDataModel instance) =>
     <String, dynamic>{
       'accessToken': instance.accessToken,
       'id': instance.id,

@@ -4,11 +4,11 @@ abstract class BaseRepoApi {
   String? accessToken;
   BaseRepoApi(this.accessToken);
 
-  Future<UserInfo?> checkAccessToken({
+  Future<UserInfoModel?> checkAccessToken({
     required String accessToken,
   });
 
-  Future<UserInfo?> getUser({
+  Future<UserInfoModel?> getUser({
     required String username,
   });
   addCollaborator({
@@ -22,7 +22,7 @@ abstract class BaseRepoApi {
     required String repo,
     required String username,
   });
-  Future<List<UserInfo>> listCollaborators({
+  Future<List<UserInfoModel>> listCollaborators({
     required String owner,
     required String repo,
     int? page,

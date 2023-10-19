@@ -14,7 +14,7 @@ import './encrypt.dart';
 import './api/api.dart';
 
 const uuid = Uuid();
-
+typedef StringMapBox = CollectionBox<Map<String, dynamic>>;
 // ignore: constant_identifier_names
 const PASSWORD_LENGTH = 32;
 
@@ -71,27 +71,34 @@ class Users {
   final DB db;
   Users.bind(this.db);
 
-  Future<User?> get(String id) async {
-    return (await box).get(id);
+  Future<UserModel?> get(String id) async {
+    final json = await (await box).get(id);
+    if (json == null) return null;
+    return UserModel.fromJson(json);
   }
 
-  Future add(String uuid, User user) async {
-    return (await box).put(uuid, user);
+  Future add(String uuid, UserModel user) async {
+    return (await box).put(uuid, user.toJson());
   }
 
-  Future<CollectionBox<User>> get box {
+  Future<StringMapBox> get box {
     return db.collection.openBox("users");
   }
 }
 
+// workspace id == token id
 class Workspace {
   final DB db;
   Workspace.bind(this.db);
+
+  Future<StringMapBox> get box {
+    return db.collection.openBox("workspace");
+  }
 }
 
 class RemoteRepo {
   late final DB db;
-  late var config = RemoteRepoConfig(repos: []);
+  late var config = RemoteRepoConfigModel(repos: []);
   var length = 0.obs;
 
   RemoteRepo.bind(this.db);
@@ -105,7 +112,7 @@ class RemoteRepo {
       file.readAsString().then((data) {
         final decrypted = decryptByPwd(db.pwd, data);
         final json = convert.jsonDecode(decrypted);
-        config = RemoteRepoConfig.fromJson(json);
+        config = RemoteRepoConfigModel.fromJson(json);
         length.value = config.repos.length;
       });
     }
@@ -120,8 +127,8 @@ class RemoteRepo {
       return false;
     }
     final ownerId = uuid.v1();
-    await db.users.add(ownerId, User(info: owner, org: org, id: ownerId));
-    config.repos.add(RemoteRepoData(
+    await db.users.add(ownerId, UserModel(info: owner, org: org, id: ownerId));
+    config.repos.add(RemoteRepoDataModel(
       org: org,
       accessToken: accessToken,
       updateTime: DateTime.now(),
@@ -133,7 +140,7 @@ class RemoteRepo {
     return true;
   }
 
-  RemoteRepoData get(int idx) {
+  RemoteRepoDataModel get(int idx) {
     return config.repos.elementAt(idx);
   }
 
