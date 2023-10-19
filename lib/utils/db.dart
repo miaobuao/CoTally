@@ -1,19 +1,22 @@
 import 'dart:async';
 import 'dart:convert' as convert;
-import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:cotally/utils/constants.dart';
 import 'package:cotally/utils/models/config.dart';
-import 'package:encrypt/encrypt.dart';
+import 'package:cotally/utils/models/user.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 import 'package:path/path.dart';
-import 'package:sqlite3/open.dart';
-import 'package:sqlite3/sqlite3.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:bcrypt/bcrypt.dart';
 import 'package:uuid/uuid.dart';
+import './encrypt.dart';
+import './api/api.dart';
 
-final uuid = Uuid();
+const uuid = Uuid();
+
+// ignore: constant_identifier_names
+const PASSWORD_LENGTH = 32;
 
 class DB {
   DB._();
@@ -21,19 +24,20 @@ class DB {
   factory DB() {
     return instance;
   }
+  String _pwd = "";
+  late String basePath;
+  late BoxCollection collection;
+  late final RemoteRepo remoteRepo = RemoteRepo.bind(this);
+  late final Users users = Users.bind(this);
 
   void prepare() {
     remoteRepo.reload();
   }
 
-  late String basePath;
-  static const passwordLength = 32;
-  String _pwd = "";
-
   Uint8List get pwd {
     var list = Uint8List.fromList(convert.utf8.encode(_pwd));
     return Uint8List.fromList(
-        [...list, ...Uint8List(passwordLength - list.length)]);
+        [...list, ...Uint8List(PASSWORD_LENGTH - list.length)]);
   }
 
   setPwd(String value) {
@@ -41,8 +45,6 @@ class DB {
     _pwd = value;
     prepare();
   }
-
-  late final RemoteRepo remoteRepo = RemoteRepo.get(db: this);
 
   File get pubKeyFile {
     return File(join(basePath, "key.pub"));
@@ -65,18 +67,34 @@ class DB {
   }
 }
 
-class RemoteRepo {
-  RemoteRepo._();
-  static final RemoteRepo instance = RemoteRepo._();
-  factory RemoteRepo() {
-    return instance;
+class Users {
+  final DB db;
+  Users.bind(this.db);
+
+  Future<User?> get(String id) async {
+    return (await box).get(id);
   }
 
+  Future add(String uuid, User user) async {
+    return (await box).put(uuid, user);
+  }
+
+  Future<CollectionBox<User>> get box {
+    return db.collection.openBox("users");
+  }
+}
+
+class Workspace {
+  final DB db;
+  Workspace.bind(this.db);
+}
+
+class RemoteRepo {
   late final DB db;
   late var config = RemoteRepoConfig(repos: []);
   var length = 0.obs;
 
-  RemoteRepo.get({required this.db});
+  RemoteRepo.bind(this.db);
 
   File get file {
     return File(join(db.basePath, "remote-repo.conf"));
@@ -93,20 +111,26 @@ class RemoteRepo {
     }
   }
 
-  add({
-    required String org,
+  Future<bool> add({
+    required Org org,
     required String accessToken,
-    required String username,
-  }) {
+  }) async {
+    final owner = await apiOf(org).checkAccessToken(accessToken: accessToken);
+    if (owner == null) {
+      return false;
+    }
+    final ownerId = uuid.v1();
+    await db.users.add(ownerId, User(info: owner, org: org, id: ownerId));
     config.repos.add(RemoteRepoData(
       org: org,
       accessToken: accessToken,
       updateTime: DateTime.now(),
-      username: username,
       id: uuid.v1(),
+      ownerId: ownerId,
     ));
     length.value = config.repos.length;
     save();
+    return true;
   }
 
   RemoteRepoData get(int idx) {
@@ -119,38 +143,3 @@ class RemoteRepo {
     return file.writeAsString(encrypted);
   }
 }
-
-(Encrypter, IV) generateEncrypter(Uint8List pwd, {String? iv}) {
-  return (
-    Encrypter(AES(Key(pwd), mode: AESMode.cbc)),
-    iv == null ? IV.fromLength(16) : IV.fromBase64(iv),
-  );
-}
-
-String encryptByPwd(Uint8List pwd, String plainText) {
-  final (encrypter, iv) = generateEncrypter(pwd);
-  final encrypted = encrypter.encrypt(plainText, iv: iv);
-  return "${iv.base64}.${encrypted.base64}";
-}
-
-String decryptByPwd(Uint8List pwd, String encrypted) {
-  final splitted = encrypted.split(".");
-  encrypted = splitted[1];
-  final (encrypter, iv) = generateEncrypter(pwd, iv: splitted[0]);
-  final decrypted = encrypter.decrypt(Encrypted.fromBase64(encrypted), iv: iv);
-  return decrypted;
-}
-
-// void main() {
-//   open.overrideFor(OperatingSystem.linux, _openOnLinux);
-
-//   final db = sqlite3.openInMemory();
-//   // Use the database
-//   db.dispose();
-// }
-
-// DynamicLibrary _openOnLinux() {
-//   final scriptDir = File(Platform.script.toFilePath()).parent;
-//   final libraryNextToScript = File(join(scriptDir.path, 'sqlite3.so'));
-//   return DynamicLibrary.open(libraryNextToScript.path);
-// }

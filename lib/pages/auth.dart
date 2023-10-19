@@ -1,5 +1,6 @@
 // ignore_for_file: must_be_immutable
 import 'dart:async';
+import 'package:cotally/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cotally/component/button.dart';
@@ -8,7 +9,6 @@ import 'package:cotally/component/input.dart';
 import 'package:cotally/component/toast.dart';
 import 'package:cotally/utils/db.dart';
 import 'package:cotally/utils/delay.dart';
-import 'package:cotally/utils/locale.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -56,14 +56,14 @@ class InputPasswordView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("加密设置".i18n)),
+      appBar: AppBar(title: Text(S.current.encryptionSettings)),
       body: Obx(() => Stepper(
             currentStep: stepperIndex.value,
             onStepCancel: onReset,
             onStepContinue: onContinue,
             steps: [
               Step(
-                title: H3("请输入一次密码".i18n),
+                title: H3(S.current.enterPwd),
                 content: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -71,7 +71,7 @@ class InputPasswordView extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Input(
-                          hint: "密码".i18n,
+                          hint: S.current.password,
                           keyboardType: TextInputType.visiblePassword,
                           obscureText: true,
                           controller: firstController,
@@ -89,7 +89,7 @@ class InputPasswordView extends StatelessWidget {
                 ),
               ),
               Step(
-                title: H3("请再输入一次密码".i18n),
+                title: H3(S.current.enterPwdAgain),
                 content: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -97,7 +97,7 @@ class InputPasswordView extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Input(
-                          hint: "密码".i18n,
+                          hint: S.current.password,
                           keyboardType: TextInputType.visiblePassword,
                           obscureText: true,
                           controller: secondController,
@@ -132,7 +132,8 @@ class InputPasswordView extends StatelessWidget {
   void onContinue() {
     if (stepperIndex.value == 0) {
       if (firstController.text.isEmpty) {
-        toast.add("不可为空".i18n, type: ToastType.warning);
+        toast.add(S.current.cannotBeEmpty(S.current.password),
+            type: ToastType.warning);
         firstFocusNode.requestFocus();
         return;
       }
@@ -142,19 +143,20 @@ class InputPasswordView extends StatelessWidget {
       delayedFocus(secondFocusNode, milliseconds: 200);
     } else if (stepperIndex.value == 1) {
       if (secondController.text.isEmpty) {
-        toast.add("不可为空".i18n, type: ToastType.warning);
+        toast.add(S.current.cannotBeEmpty(S.current.password),
+            type: ToastType.warning);
         secondFocusNode.requestFocus();
         return;
       }
       pwd2 = secondController.text;
       if (pwd1 != pwd2) {
-        toast.add("两次输入的密码不相同".i18n, type: ToastType.warning);
+        toast.add(S.current.twoPwdDifferent, type: ToastType.warning);
         secondFocusNode.requestFocus();
         return;
       }
       secondController.clear();
       secondFocusNode.unfocus();
-      toast.add("完成".i18n, type: ToastType.success);
+      toast.add(S.current.done, type: ToastType.success);
       onSubmit();
     }
   }
@@ -181,11 +183,11 @@ class VerifyView extends StatelessWidget {
           child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          H2("身份验证".i18n).marginOnly(bottom: 20),
+          H2(S.current.verify).marginOnly(bottom: 20),
           Input(
             onChanged: (value) {},
             obscureText: true,
-            hint: "请输入密码".i18n,
+            hint: S.current.enterPwd,
             controller: fieldController,
             focusNode: fieldFocusNode,
             inputFormatters: Aes256PwdInputFormatter,
@@ -215,19 +217,20 @@ class VerifyView extends StatelessWidget {
 
   void submit() {
     if (pwd.isEmpty) {
-      toast.add("不可为空".i18n, type: ToastType.warning);
+      toast.add(S.current.cannotBeEmpty(S.current.password),
+          type: ToastType.warning);
       return;
     }
     final db = DB();
     if (db.checkPassword(pwd)) {
-      toast.add("完成".i18n, type: ToastType.success);
+      toast.add(S.current.done, type: ToastType.success);
       if (db.remoteRepo.file.existsSync()) {
         Get.offAllNamed("/home");
       } else {
         Get.offAllNamed("/access_token");
       }
     } else {
-      toast.add("认证失败".i18n, type: ToastType.error);
+      toast.add(S.current.authenticationFailed, type: ToastType.error);
     }
     fieldController.clear();
   }

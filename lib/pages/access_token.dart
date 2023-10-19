@@ -1,19 +1,20 @@
 import 'package:cotally/component/button.dart';
 import 'package:cotally/component/input.dart';
 import 'package:cotally/component/toast.dart';
+import 'package:cotally/generated/l10n.dart';
+import 'package:cotally/utils/constants.dart';
 import 'package:cotally/utils/db.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../utils/locale.dart';
 import '../component/header.dart';
 
+// ignore: must_be_immutable
 class AccessTokenPage extends StatelessWidget {
   AccessTokenPage({super.key});
 
   final tokenFieldController = TextEditingController();
-  final usernameController = TextEditingController();
 
-  String org = 'gitee';
+  Org org = Org.gitee;
 
   @override
   Widget build(BuildContext context) {
@@ -22,11 +23,7 @@ class AccessTokenPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            H1("CoTally".i18n),
-            Input(
-              hint: "用户名".i18n,
-              controller: usernameController,
-            ).marginOnly(top: 20),
+            H1(S.current.appName),
             Input(
               hint: "Gitee Access Token",
               controller: tokenFieldController,
@@ -50,19 +47,23 @@ class AccessTokenPage extends StatelessWidget {
   void onSubmit() {
     final token = tokenFieldController.text;
     if (token.isEmpty) {
-      toast.add("Access Token不可为空".i18n, type: ToastType.warning);
+      toast.add(S.current.cannotBeEmpty(S.current.accessToken),
+          type: ToastType.warning);
       return;
     }
     final db = DB();
-    String username = usernameController.text;
-    if (username.isEmpty) {
-      username = "用户 ".i18n + DateTime.now().toIso8601String();
-    }
-    db.remoteRepo.add(
+    db.remoteRepo
+        .add(
       org: org,
       accessToken: token,
-      username: usernameController.text,
-    );
-    Get.offAllNamed("/home");
+    )
+        .then((success) {
+      if (success) {
+        toast.add(S.current.done, type: ToastType.success);
+        Get.offAllNamed("/home");
+      } else {
+        toast.add(S.current.wrongAccessToken, type: ToastType.error);
+      }
+    });
   }
 }

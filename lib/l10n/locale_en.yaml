@@ -12,3 +12,6 @@ confirm: Confirm
 cancel: Cancel
 reset: Reset
 user: User
+authenticationFailed: Authentication failed
+accessToken: Access Token
+wrongAccessToken: Wrong Access Token

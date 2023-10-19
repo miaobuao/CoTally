@@ -20,18 +20,23 @@ Map<String, dynamic> _$RemoteRepoConfigToJson(RemoteRepoConfig instance) =>
 
 RemoteRepoData _$RemoteRepoDataFromJson(Map<String, dynamic> json) =>
     RemoteRepoData(
-      org: json['org'] as String,
+      org: $enumDecode(_$OrgEnumMap, json['org']),
       accessToken: json['accessToken'] as String,
       updateTime: DateTime.parse(json['updateTime'] as String),
-      username: json['username'] as String,
       id: json['id'] as String,
+      ownerId: json['ownerId'] as String,
     );
 
 Map<String, dynamic> _$RemoteRepoDataToJson(RemoteRepoData instance) =>
     <String, dynamic>{
-      'org': instance.org,
       'accessToken': instance.accessToken,
-      'username': instance.username,
       'id': instance.id,
+      'org': _$OrgEnumMap[instance.org]!,
       'updateTime': instance.updateTime.toIso8601String(),
+      'ownerId': instance.ownerId,
     };
+
+const _$OrgEnumMap = {
+  Org.gitee: 'gitee',
+  Org.github: 'github',
+};

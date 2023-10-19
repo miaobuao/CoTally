@@ -20,6 +20,31 @@ typedef String MessageIfAbsent(String messageStr, List<dynamic> args);
 class MessageLookup extends MessageLookupByLibrary {
   String get localeName => 'en';
 
+  static String m0(name) => "${name} cannot be empty";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
-  static Map<String, Function> _notInlinedMessages(_) => <String, Function>{};
+  static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
+        "accessToken": MessageLookupByLibrary.simpleMessage("Access Token"),
+        "appName": MessageLookupByLibrary.simpleMessage("CoTally"),
+        "authenticationFailed":
+            MessageLookupByLibrary.simpleMessage("Authentication failed"),
+        "cancel": MessageLookupByLibrary.simpleMessage("Cancel"),
+        "cannotBeEmpty": m0,
+        "confirm": MessageLookupByLibrary.simpleMessage("Confirm"),
+        "done": MessageLookupByLibrary.simpleMessage("Done"),
+        "encryptionSettings":
+            MessageLookupByLibrary.simpleMessage("Encryption Settings"),
+        "enterPwd": MessageLookupByLibrary.simpleMessage("Enter password"),
+        "enterPwdAgain":
+            MessageLookupByLibrary.simpleMessage("Enter password again"),
+        "password": MessageLookupByLibrary.simpleMessage("Password"),
+        "reset": MessageLookupByLibrary.simpleMessage("Reset"),
+        "submit": MessageLookupByLibrary.simpleMessage("Submit"),
+        "twoPwdDifferent": MessageLookupByLibrary.simpleMessage(
+            "The two passwords entered are different"),
+        "user": MessageLookupByLibrary.simpleMessage("User"),
+        "verify": MessageLookupByLibrary.simpleMessage("Verify"),
+        "wrongAccessToken":
+            MessageLookupByLibrary.simpleMessage("Wrong Access Token")
+      };
 }

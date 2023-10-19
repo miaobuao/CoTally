@@ -1,5 +1,5 @@
+import 'package:cotally/generated/l10n.dart';
 import 'package:cotally/utils/db.dart';
-import 'package:cotally/utils/locale.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -11,7 +11,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("CoTally".i18n),
+        title: Text(S.current.appName),
       ),
       drawer: Drawer(
         child: Obx(() => ListView.builder(
@@ -19,7 +19,7 @@ class HomePage extends StatelessWidget {
             itemBuilder: (context, idx) {
               final data = db.remoteRepo.get(idx);
               return ListTile(
-                title: Text(data.username),
+                title: Text(data.id),
                 subtitle: Text(data.updateTime.toString()),
               );
             })),

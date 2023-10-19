@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/locale.dart';
 import '../style/colors.dart';
+import '../generated/l10n.dart';
 
 class Buttons {
   static const submit = 1;
@@ -52,19 +53,19 @@ class ButtonGroup extends StatelessWidget {
     if (buttons & Buttons.reset != 0) {
       list.add(ResetButton(
         onPressed: onReset,
-        child: Text("重置".i18n),
+        child: Text(S.current.reset),
       ));
     }
     if (buttons & Buttons.submit != 0) {
       list.add(SubmitButton(
         onPressed: onSubmit,
-        child: Text("确认".i18n),
+        child: Text(S.current.confirm),
       ));
     }
     if (buttons & Buttons.cancel != 0) {
       list.add(CancelButton(
         onPressed: onCancel,
-        child: Text("取消".i18n),
+        child: Text(S.current.cancel),
       ));
     }
     return Wrap(

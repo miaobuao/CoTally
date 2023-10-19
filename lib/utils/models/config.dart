@@ -1,4 +1,5 @@
 // ignore: depend_on_referenced_packages
+import 'package:cotally/utils/constants.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'config.g.dart';
@@ -14,14 +15,16 @@ class RemoteRepoConfig {
 
 @JsonSerializable()
 class RemoteRepoData {
-  final String org, accessToken, username, id;
+  final String accessToken, id;
+  final Org org;
   final DateTime updateTime;
+  final String ownerId;
   RemoteRepoData({
     required this.org,
     required this.accessToken,
     required this.updateTime,
-    required this.username,
     required this.id,
+    required this.ownerId,
   });
   factory RemoteRepoData.fromJson(Map<String, dynamic> json) =>
       _$RemoteRepoDataFromJson(json);

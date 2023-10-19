@@ -12,3 +12,6 @@ confirm: 确认
 cancel: 取消
 reset: 重置
 user: 用户
+authenticationFailed: 认证失败
+accessToken: 访问令牌
+wrongAccessToken: 令牌错误
