@@ -74,6 +74,7 @@ class RemoteRepo {
 
   late final DB db;
   late var config = RemoteRepoConfig(repos: []);
+  var length = 0.obs;
 
   RemoteRepo.get({required this.db});
 
@@ -87,6 +88,7 @@ class RemoteRepo {
         final decrypted = decryptByPwd(db.pwd, data);
         final json = convert.jsonDecode(decrypted);
         config = RemoteRepoConfig.fromJson(json);
+        length.value = config.repos.length;
       });
     }
   }
@@ -103,7 +105,12 @@ class RemoteRepo {
       username: username,
       id: uuid.v1(),
     ));
+    length.value = config.repos.length;
     save();
+  }
+
+  RemoteRepoData get(int idx) {
+    return config.repos.elementAt(idx);
   }
 
   Future<File> save() {

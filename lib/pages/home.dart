@@ -1,9 +1,11 @@
+import 'package:cotally/utils/db.dart';
 import 'package:cotally/utils/locale.dart';
 import 'package:flutter/material.dart';
-import 'package:styled_widget/styled_widget.dart';
+import 'package:get/get.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  final db = DB();
+  HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -12,39 +14,15 @@ class HomePage extends StatelessWidget {
         title: Text("CoTally".i18n),
       ),
       drawer: Drawer(
-        child: ListView(
-          // padding: EdgeInsets.zero,
-          children: [
-            // DrawerHeader(child: Text("head")),
-            ListTile(
-              title: Text('Item 1'),
-              leading: new CircleAvatar(
-                child: new Icon(Icons.school),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: Text('Item 2'),
-              leading: new CircleAvatar(
-                child: new Text('B2'),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: Text('Item 3'),
-              leading: new CircleAvatar(
-                child: new Icon(Icons.list),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
+        child: Obx(() => ListView.builder(
+            itemCount: db.remoteRepo.length.value,
+            itemBuilder: (context, idx) {
+              final data = db.remoteRepo.get(idx);
+              return ListTile(
+                title: Text(data.username),
+                subtitle: Text(data.updateTime.toString()),
+              );
+            })),
       ),
       body: Container(),
     );

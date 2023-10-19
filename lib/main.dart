@@ -1,4 +1,6 @@
+import 'package:cotally/generated/l10n.dart';
 import 'package:cotally/pages/home.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'component/toast.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +25,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
+      localizationsDelegates: const [
+        S.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: S.delegate.supportedLocales,
       initialRoute: '/auth',
       getPages: [
         routerWrapper(
