@@ -22,9 +22,14 @@ class GiteeApi implements BaseRepoApi {
   }
 
   @override
-  Future<UserInfoModel?> checkAccessToken({required String accessToken}) {
-    // TODO: implement checkAccessToken
-    throw UnimplementedError();
+  // https://gitee.com/api/v5/swagger#/getV5User
+  Future<UserInfoModel?> checkAccessToken({required String accessToken}) async {
+    final response = await dio.get("https://gitee.com/api/v5/user",
+        queryParameters: {"access_token": accessToken});
+    if (response.statusCode == 200) {
+      return UserInfoModel.fromJson(response.data);
+    }
+    return null;
   }
 
   @override

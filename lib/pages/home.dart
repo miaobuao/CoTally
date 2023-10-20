@@ -18,10 +18,18 @@ class HomePage extends StatelessWidget {
             itemCount: db.remoteRepo.length.value,
             itemBuilder: (context, idx) {
               final data = db.remoteRepo.get(idx);
-              return ListTile(
-                title: Text(data.id),
-                subtitle: Text(data.updateTime.toString()),
+              final owner = db.users.get(data.ownerId);
+              return FutureBuilder(
+                future: owner,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {}
+                  return const CircularProgressIndicator();
+                },
               );
+              // return ListTile(
+              //   title: Text(data.ownerId),
+              //   subtitle: Text(data.updateTime.toString()),
+              // );
             })),
       ),
       body: Container(),

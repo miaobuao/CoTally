@@ -76,15 +76,15 @@ class Users {
   Future<UserModel?> get(String id) async {
     final json = await (await box).get(id);
     if (json == null) return null;
-    return UserModel.fromJson(json);
+    return UserModel.fromJson(convert.jsonDecode(json));
   }
 
   Future add(String uuid, UserModel user) async {
-    return (await box).put(uuid, user.toJson());
+    return (await box).put(uuid, convert.jsonEncode(user.toJson()));
   }
 
-  Future<StringMapBox> get box {
-    return db.collection.openBox("users");
+  Future<CollectionBox<String>> get box {
+    return db.collection.openBox<String>("users");
   }
 }
 
@@ -97,7 +97,7 @@ class Workspace {
   }
 
   Future<StringMapBox> get box {
-    return db.collection.openBox("workspace");
+    return db.collection.openBox<Map<String, dynamic>>("workspace");
   }
 }
 
