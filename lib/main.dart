@@ -22,7 +22,6 @@ void main() async {
     {"users"},
     path: basePath.path,
   );
-  (await db.users.box).clear();
   runApp(const MyApp());
 }
 

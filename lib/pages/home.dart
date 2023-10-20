@@ -22,14 +22,16 @@ class HomePage extends StatelessWidget {
               return FutureBuilder(
                 future: owner,
                 builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {}
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    return ListTile(
+                      title: Text(snapshot.data?.info.name ?? ''),
+                      subtitle: Text(data.updateTime.toString()),
+                      leading: const Icon(Icons.storage_rounded),
+                    );
+                  }
                   return const CircularProgressIndicator();
                 },
               );
-              // return ListTile(
-              //   title: Text(data.ownerId),
-              //   subtitle: Text(data.updateTime.toString()),
-              // );
             })),
       ),
       body: Container(),
