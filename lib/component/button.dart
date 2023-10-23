@@ -15,15 +15,15 @@ class SubmitButton extends ElevatedButton {
   });
 }
 
-class CancelButton extends TextButton {
-  CancelButton({
+class ResetButton extends OutlinedButton {
+  ResetButton({
     required super.onPressed,
     required super.child,
   });
 }
 
-class ResetButton extends OutlinedButton {
-  ResetButton({
+class CancelButton extends TextButton {
+  CancelButton({
     required super.onPressed,
     required super.child,
   });
