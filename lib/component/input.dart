@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter/services.dart';
+
+// ignore: non_constant_identifier_names
+final Aes256PwdInputFormatter = [
+  LengthLimitingTextInputFormatter(32),
+  FilteringTextInputFormatter.allow(RegExp("[\x00-\xff]"))
+];
 
 class BorderedTextFieldDecoration extends InputDecoration {
   final double? radius;
@@ -29,6 +36,8 @@ class Input extends TextField {
     super.controller,
     super.autofocus,
     super.focusNode,
+    super.inputFormatters,
+    super.maxLength,
   }) : super(
           style: const TextStyle(
             fontSize: 20,

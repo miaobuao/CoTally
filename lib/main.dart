@@ -1,10 +1,15 @@
 import 'package:cotally/style/colors.dart';
 
-import 'component/toast.dart';
+import 'package:cotally/generated/l10n.dart';
+import 'package:cotally/pages/home.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:hive/hive.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import "package:i18n_extension/i18n_widget.dart";
 import 'package:path_provider/path_provider.dart';
+
+import 'component/toast.dart';
 import 'pages/access_token.dart';
 import 'pages/auth.dart';
 import 'utils/db.dart';
@@ -14,6 +19,11 @@ void main() async {
   final basePath = await getApplicationDocumentsDirectory();
   final db = DB();
   db.basePath = basePath.path;
+  db.collection = await BoxCollection.open(
+    "CoTally",
+    {"users"},
+    path: basePath.path,
+  );
   runApp(const MyApp());
 }
 
@@ -23,16 +33,24 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
+      localizationsDelegates: const [
+        S.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: S.delegate.supportedLocales,
       initialRoute: '/auth',
       getPages: [
         routerWrapper(
           '/auth',
-          AuthPage(),
+          const AuthPage(),
         ),
         routerWrapper(
           '/access_token',
           AccessTokenPage(),
         ),
+        routerWrapper("/home", HomePage()),
       ],
       themeMode: ThemeMode.system,
       darkTheme: ThemeData(

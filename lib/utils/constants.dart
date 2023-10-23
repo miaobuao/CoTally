@@ -1,0 +1,4 @@
+enum Org {
+  gitee,
+  github,
+}

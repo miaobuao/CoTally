@@ -6,28 +6,40 @@ part of 'config.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-RemoteRepoConfig _$RemoteRepoConfigFromJson(Map<String, dynamic> json) =>
-    RemoteRepoConfig(
+RemoteRepoConfigModel _$RemoteRepoConfigModelFromJson(
+        Map<String, dynamic> json) =>
+    RemoteRepoConfigModel(
       repos: (json['repos'] as List<dynamic>)
-          .map((e) => RemoteRepoData.fromJson(e as Map<String, dynamic>))
+          .map((e) => RemoteRepoDataModel.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
-Map<String, dynamic> _$RemoteRepoConfigToJson(RemoteRepoConfig instance) =>
+Map<String, dynamic> _$RemoteRepoConfigModelToJson(
+        RemoteRepoConfigModel instance) =>
     <String, dynamic>{
       'repos': instance.repos.map((e) => e.toJson()).toList(),
     };
 
-RemoteRepoData _$RemoteRepoDataFromJson(Map<String, dynamic> json) =>
-    RemoteRepoData(
-      org: json['org'] as String,
+RemoteRepoDataModel _$RemoteRepoDataModelFromJson(Map<String, dynamic> json) =>
+    RemoteRepoDataModel(
+      org: $enumDecode(_$OrgEnumMap, json['org']),
       accessToken: json['accessToken'] as String,
       updateTime: DateTime.parse(json['updateTime'] as String),
+      id: json['id'] as String,
+      ownerId: json['ownerId'] as String,
     );
 
-Map<String, dynamic> _$RemoteRepoDataToJson(RemoteRepoData instance) =>
+Map<String, dynamic> _$RemoteRepoDataModelToJson(
+        RemoteRepoDataModel instance) =>
     <String, dynamic>{
-      'org': instance.org,
       'accessToken': instance.accessToken,
+      'id': instance.id,
+      'org': _$OrgEnumMap[instance.org]!,
       'updateTime': instance.updateTime.toIso8601String(),
+      'ownerId': instance.ownerId,
     };
+
+const _$OrgEnumMap = {
+  Org.gitee: 'gitee',
+  Org.github: 'github',
+};

@@ -1,0 +1,17 @@
+appName: 一起来记账
+password: 密码
+enterPwd: 请输入密码
+enterPwdAgain: 再输入一次密码
+encryptionSettings: 加密设置
+cannotBeEmpty: "{name}不可为空"
+twoPwdDifferent: 两次输入的密码不同
+done: 完成
+verify: 验证
+submit: 提交
+confirm: 确认
+cancel: 取消
+reset: 重置
+user: 用户
+authenticationFailed: 认证失败
+accessToken: 访问令牌
+wrongAccessToken: 令牌错误
