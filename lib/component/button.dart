@@ -49,16 +49,16 @@ class ButtonGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<Widget> list = [];
-    if (buttons & Buttons.reset != 0) {
-      list.add(ResetButton(
-        onPressed: onReset,
-        child: Text(S.current.reset),
-      ));
-    }
     if (buttons & Buttons.submit != 0) {
       list.add(SubmitButton(
         onPressed: onSubmit,
         child: Text(S.current.confirm),
+      ));
+    }
+    if (buttons & Buttons.reset != 0) {
+      list.add(ResetButton(
+        onPressed: onReset,
+        child: Text(S.current.reset),
       ));
     }
     if (buttons & Buttons.cancel != 0) {

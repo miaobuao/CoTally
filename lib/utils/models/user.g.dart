@@ -28,11 +28,13 @@ UserInfoModel _$UserInfoModelFromJson(Map<String, dynamic> json) =>
       avatarUrl: json['avatar_url'] as String,
       name: json['name'] as String,
       id: json['id'] as int,
+      login: json['login'] as String,
     );
 
 Map<String, dynamic> _$UserInfoModelToJson(UserInfoModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
+      'login': instance.login,
       'avatar_url': instance.avatarUrl,
     };

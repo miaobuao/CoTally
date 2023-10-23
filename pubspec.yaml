@@ -52,6 +52,9 @@ dependencies:
   path_provider: ^2.0.15
   dio: ^5.3.3
   json_annotation: ^4.8.1
+  skeletonizer: ^0.8.0
+  flutter_speed_dial: ^7.0.0
+  flutter_meedu: ^9.0.6
 
 dev_dependencies:
   flutter_test:
@@ -87,7 +90,7 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-    - family: GitApp
+    - family: GitApps
       fonts:
         - asset: assets/icons/GitApps.ttf
   #       - asset: fonts/Schyler-Italic.ttf

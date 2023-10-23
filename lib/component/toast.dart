@@ -114,11 +114,14 @@ class ToastPage extends StatelessWidget {
     return Stack(
       children: [
         child,
-        Obx(() => IgnorePointer(
-              child: ListView(
-                children: toast.list,
-              ),
-            ))
+        Obx(
+          () => IgnorePointer(
+            child: ListView(
+              children: toast.list,
+            ).marginOnly(
+                top: Theme.of(context).appBarTheme.toolbarHeight ?? 22.0),
+          ),
+        )
       ],
     );
   }

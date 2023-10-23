@@ -55,7 +55,7 @@ class AccessTokenPage extends StatelessWidget {
     db.remoteRepo.add(org: org, accessToken: token).then((success) {
       if (success) {
         toast.add(S.current.done, type: ToastType.success);
-        Get.offAllNamed("/home");
+        Get.offAllNamed("/workspace");
       } else {
         toast.add(S.current.wrongAccessToken, type: ToastType.error);
       }

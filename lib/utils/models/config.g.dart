@@ -12,12 +12,14 @@ RemoteRepoConfigModel _$RemoteRepoConfigModelFromJson(
       repos: (json['repos'] as List<dynamic>)
           .map((e) => RemoteRepoDataModel.fromJson(e as Map<String, dynamic>))
           .toList(),
+      lastOpenedId: json['lastOpenedId'] as String?,
     );
 
 Map<String, dynamic> _$RemoteRepoConfigModelToJson(
         RemoteRepoConfigModel instance) =>
     <String, dynamic>{
       'repos': instance.repos.map((e) => e.toJson()).toList(),
+      'lastOpenedId': instance.lastOpenedId,
     };
 
 RemoteRepoDataModel _$RemoteRepoDataModelFromJson(Map<String, dynamic> json) =>

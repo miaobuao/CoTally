@@ -1,7 +1,7 @@
 import 'package:cotally/style/colors.dart';
 
 import 'package:cotally/generated/l10n.dart';
-import 'package:cotally/pages/home.dart';
+import 'package:cotally/pages/workspace.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive/hive.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +21,7 @@ void main() async {
   db.basePath = basePath.path;
   db.collection = await BoxCollection.open(
     "CoTally",
-    {"users"},
+    {"users", 'workspaces'},
     path: basePath.path,
   );
   runApp(const MyApp());
@@ -50,12 +50,17 @@ class MyApp extends StatelessWidget {
           '/access_token',
           AccessTokenPage(),
         ),
-        routerWrapper("/home", HomePage()),
+        routerWrapper("/workspace", WorkspacePage()),
       ],
       themeMode: ThemeMode.system,
       darkTheme: ThemeData(
         colorScheme: ColorScheme.dark(
           primary: primaryMaterialColor.shade900,
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            side: BorderSide(color: secondaryMaterialColor.shade500),
+          ),
         ),
         useMaterial3: true,
       ),

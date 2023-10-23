@@ -6,7 +6,8 @@ part 'config.g.dart';
 @JsonSerializable(explicitToJson: true)
 class RemoteRepoConfigModel {
   final List<RemoteRepoDataModel> repos;
-  RemoteRepoConfigModel({required this.repos});
+  String? lastOpenedId;
+  RemoteRepoConfigModel({required this.repos, this.lastOpenedId});
   factory RemoteRepoConfigModel.fromJson(Map<String, dynamic> json) =>
       _$RemoteRepoConfigModelFromJson(json);
   Map<String, dynamic> toJson() => _$RemoteRepoConfigModelToJson(this);
@@ -14,7 +15,8 @@ class RemoteRepoConfigModel {
 
 @JsonSerializable()
 class RemoteRepoDataModel {
-  final String accessToken, id;
+  final String accessToken;
+  final String id;
   final Org org;
   final DateTime updateTime;
   final String ownerId;

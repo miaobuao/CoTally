@@ -19,11 +19,16 @@ class UserModel {
 class UserInfoModel {
   final int id;
   final String name;
+  final String login;
   @JsonKey(name: "avatar_url")
   final String avatarUrl;
 
-  UserInfoModel(
-      {required this.avatarUrl, required this.name, required this.id});
+  UserInfoModel({
+    required this.avatarUrl,
+    required this.name,
+    required this.id,
+    required this.login,
+  });
   factory UserInfoModel.fromJson(Map<String, dynamic> json) =>
       _$UserInfoModelFromJson(json);
   Map<String, dynamic> toJson() => _$UserInfoModelToJson(this);

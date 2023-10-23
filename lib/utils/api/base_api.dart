@@ -1,3 +1,5 @@
+import 'package:cotally/utils/models/workspace.dart';
+
 import '../models/user.dart';
 
 abstract class BaseRepoApi {
@@ -27,6 +29,10 @@ abstract class BaseRepoApi {
     required String repo,
     int? page,
     int? perPage,
+  });
+  Future<List<BookModel>?> listRepos({
+    int page = 1,
+    int perPage = 100,
   });
 }
 

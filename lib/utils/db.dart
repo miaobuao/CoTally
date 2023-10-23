@@ -2,12 +2,15 @@ import 'dart:async';
 import 'dart:convert' as convert;
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:cotally/stores/stores.dart';
+import 'package:cotally/utils/api/base_api.dart';
 import 'package:cotally/utils/constants.dart';
 import 'package:cotally/utils/models/config.dart';
 import 'package:cotally/utils/models/user.dart';
 import 'package:cotally/utils/models/workspace.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:path/path.dart';
 import 'package:bcrypt/bcrypt.dart';
 import 'package:uuid/uuid.dart';
@@ -18,6 +21,8 @@ const uuid = Uuid();
 typedef StringMapBox = CollectionBox<Map<String, dynamic>>;
 // ignore: constant_identifier_names
 const PASSWORD_LENGTH = 32;
+
+final store = Store();
 
 class DB {
   DB._();
@@ -73,20 +78,13 @@ class DB {
   }
 }
 
-class GetStorage {
+class Users {
   final DB db;
-  GetStorage.bind(this.db);
-
-  Storage get storage {
-    return db.storage;
-  }
-}
-
-class Users extends GetStorage {
-  Users.bind(DB db) : super.bind(db);
+  Users.bind(this.db);
 
   Future<UserModel?> get(String id) async {
-    return JsonToModel(UserModel, await users.get(id));
+    final json = await users.get(id);
+    return json == null ? null : UserModel.fromJson(json);
   }
 
   Future create(String uuid, UserModel user) async {
@@ -94,35 +92,52 @@ class Users extends GetStorage {
   }
 
   JsonBox get users {
-    return storage.users;
+    return db.storage.users;
   }
 }
 
-class Workspaces extends GetStorage {
-  Workspaces.bind(DB db) : super.bind(db);
+class Workspaces {
+  final DB db;
+  Workspaces.bind(this.db);
 
   Future create(String workspaceId, WorkspaceModel workspace) async {
     return workspaces.save(workspaceId, workspace.toJson());
   }
 
   Future<WorkspaceModel?> get(String id) async {
-    return JsonToModel(WorkspaceModel, await workspaces.get(id));
+    final json = await workspaces.get(id);
+    return json == null ? null : WorkspaceModel.fromJson(json);
   }
 
   JsonBox get workspaces {
-    return storage.workspaces;
+    return db.storage.workspaces;
+  }
+
+  Future<WorkspaceModel?> get lastOpenedWorkspace {
+    return get(db.remoteRepo.lastOpenedId);
+  }
+
+  BaseRepoApi? getApi(String id) {
+    final repo = db.remoteRepo.get(id);
+    if (repo == null) return null;
+    final api = apiOf(repo.org);
+    api.accessToken = repo.accessToken;
+    return api;
   }
 }
 
 class RemoteRepo {
   late final DB db;
   late var config = RemoteRepoConfigModel(repos: []);
-  var length = 0.obs;
 
   RemoteRepo.bind(this.db);
 
   File get file {
     return File(join(db.basePath, "remote-repo.conf"));
+  }
+
+  String get lastOpenedId {
+    return config.lastOpenedId ?? config.repos[0].id;
   }
 
   reload() {
@@ -131,7 +146,8 @@ class RemoteRepo {
         final decrypted = decryptByPwd(db.pwd, data);
         final json = convert.jsonDecode(decrypted);
         config = RemoteRepoConfigModel.fromJson(json);
-        length.value = config.repos.length;
+        store.workspace.count.value = config.repos.length;
+        store.workspace.currentId.value = config.lastOpenedId ?? "";
       });
     }
   }
@@ -154,6 +170,14 @@ class RemoteRepo {
         id: ownerId,
       ),
     );
+    await db.workspaces.create(
+      workspaceId,
+      WorkspaceModel(
+        accessTokenId: workspaceId,
+        org: org,
+        books: [],
+      ),
+    );
     config.repos.add(RemoteRepoDataModel(
       org: org,
       accessToken: accessToken,
@@ -161,13 +185,21 @@ class RemoteRepo {
       id: workspaceId,
       ownerId: ownerId,
     ));
-    length.value = config.repos.length;
+    if (config.repos.length == 1) {
+      config.lastOpenedId = workspaceId;
+      store.workspace.currentId.value = workspaceId;
+    }
+    store.workspace.count.value = config.repos.length;
     await save();
     return true;
   }
 
-  RemoteRepoDataModel get(int idx) {
+  RemoteRepoDataModel getByIndex(int idx) {
     return config.repos.elementAt(idx);
+  }
+
+  RemoteRepoDataModel? get(String id) {
+    return config.repos.firstWhereOrNull((element) => element.id == id);
   }
 
   Future<File> save() {
@@ -210,10 +242,4 @@ class JsonBox {
   Future clear() async {
     return box.then((value) => value.clear());
   }
-}
-
-// ignore: non_constant_identifier_names
-dynamic JsonToModel(dynamic Model, Json? json) {
-  if (json == null) return null;
-  return Model.fromJson(json);
 }
