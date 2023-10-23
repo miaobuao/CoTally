@@ -15,15 +15,15 @@ class SubmitButton extends ElevatedButton {
   });
 }
 
-class CancelButton extends TextButton {
-  CancelButton({
+class ResetButton extends OutlinedButton {
+  ResetButton({
     required super.onPressed,
     required super.child,
   });
 }
 
-class ResetButton extends ElevatedButton {
-  ResetButton({
+class CancelButton extends TextButton {
+  CancelButton({
     required super.onPressed,
     required super.child,
   });
@@ -50,7 +50,9 @@ class ButtonGroup extends StatelessWidget {
     if (buttons & Buttons.submit != 0) {
       list.add(SubmitButton(
         onPressed: onSubmit,
-        child: Text("确定".i18n),
+        child: Text(
+          "确定".i18n,
+        ),
       ));
     }
     if (buttons & Buttons.reset != 0) {
@@ -61,7 +63,7 @@ class ButtonGroup extends StatelessWidget {
     }
     if (buttons & Buttons.cancel != 0) {
       list.add(CancelButton(
-        onPressed: onSubmit,
+        onPressed: onCancel,
         child: Text("取消".i18n),
       ));
     }
