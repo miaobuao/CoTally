@@ -34,6 +34,26 @@ abstract class BaseRepoApi {
     int page = 1,
     int perPage = 100,
   });
+
+  Future<BookModel?> createRepo({
+    required String name,
+    required String description,
+    required String summary,
+    required bool public,
+  });
+
+  Future<BookModel?> updateRepoSettings({
+    required BookModel book,
+    bool? private,
+    String? description,
+  });
+
+  Future<bool> createFile({
+    required BookModel book,
+    required String filePath,
+    required String content,
+    required String message,
+  });
 }
 
 enum RepoPermission {

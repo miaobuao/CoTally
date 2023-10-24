@@ -12,7 +12,7 @@ import 'package:hive/hive.dart';
 import 'package:path/path.dart';
 import 'package:bcrypt/bcrypt.dart';
 import 'package:uuid/uuid.dart';
-import './encrypt.dart';
+import 'crypto.dart';
 import './api/api.dart';
 
 const uuid = Uuid();
@@ -48,6 +48,14 @@ class DB {
     prepare();
   }
 
+  String encrypt(String plain) {
+    return encryptByPwd(pwd, plain);
+  }
+
+  String? decrypt(String encrypted) {
+    return decryptByPwd(pwd, encrypted);
+  }
+
   clear() {
     // pubKeyFile.delete();
     remoteRepo.file.delete();
@@ -65,7 +73,8 @@ class DB {
 
   Future registerPassword(String password) async {
     setPwd(password);
-    final String hashed = BCrypt.hashpw(password, BCrypt.gensalt());
+    final String hashed =
+        BCrypt.hashpw(password, BCrypt.gensalt(logRounds: 31));
     await pubKeyFile.writeAsString(hashed);
   }
 
@@ -124,10 +133,6 @@ class Workspaces {
     return db.storage.workspaces;
   }
 
-  Future<WorkspaceModel?> get lastOpenedWorkspace {
-    return get(db.remoteRepo.lastOpenedId);
-  }
-
   Future<List<BookModel>> updateBooks(String workspaceId) async {
     final repos = await get(workspaceId).then((workspace) async {
       if (workspace == null) return null;
@@ -139,9 +144,32 @@ class Workspaces {
     return repos ?? [];
   }
 
+  Future<BookModel?> createBook(
+    String workspaceId,
+    String name,
+    String summary,
+    bool public,
+  ) async {
+    final api = getApi(workspaceId);
+    return api == null
+        ? null
+        : await api.createRepo(
+            name: name,
+            description: db.encrypt(DESCRIPTION),
+            summary: db.encrypt(summary),
+            public: public,
+          );
+  }
+
   Future<List<BookModel>> listRepos(String id) async {
     final api = getApi(id);
-    return api == null ? [] : (await api.listRepos() ?? []);
+    return api == null
+        ? []
+        : await api.listRepos().then((repos) {
+            if (repos == null) return [];
+            return List.from(repos.where(
+                (element) => db.decrypt(element.description) == DESCRIPTION));
+          });
   }
 
   BaseRepoApi? getApi(String id) {
@@ -170,7 +198,8 @@ class RemoteRepo {
   reload() {
     if (db.pwd.isNotEmpty && file.existsSync()) {
       file.readAsString().then((data) {
-        final decrypted = decryptByPwd(db.pwd, data);
+        final decrypted = db.decrypt(data);
+        if (decrypted == null) return;
         final json = convert.jsonDecode(decrypted);
         config = RemoteRepoConfigModel.fromJson(json);
         store.workspace.count.value = config.repos.length;
@@ -224,7 +253,7 @@ class RemoteRepo {
 
   Future<File> save() {
     final data = convert.jsonEncode(config);
-    final encrypted = encryptByPwd(db.pwd, data);
+    final encrypted = db.encrypt(data);
     return file.writeAsString(encrypted);
   }
 }

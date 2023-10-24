@@ -7,4 +7,5 @@ class WorkspaceStore {
 
   final count = 0.obs;
   final currentId = "".obs;
+  final lastUpdated = DateTime.now().obs;
 }

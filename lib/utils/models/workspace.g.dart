@@ -32,9 +32,11 @@ const _$OrgEnumMap = {
 BookModel _$BookModelFromJson(Map<String, dynamic> json) => BookModel(
       namespace: json['namespace'] as String,
       name: json['name'] as String,
+      path: json['path'] as String,
       public: json['public'] as bool,
       description: json['description'] as String,
       url: json['url'] as String,
+      summary: json['summary'] as String?,
     );
 
 Map<String, dynamic> _$BookModelToJson(BookModel instance) => <String, dynamic>{
@@ -43,4 +45,28 @@ Map<String, dynamic> _$BookModelToJson(BookModel instance) => <String, dynamic>{
       'public': instance.public,
       'description': instance.description,
       'url': instance.url,
+      'path': instance.path,
+      'summary': instance.summary,
+    };
+
+EncryptedBookModel _$EncryptedBookModelFromJson(Map<String, dynamic> json) =>
+    EncryptedBookModel(
+      namespace: json['namespace'] as String,
+      name: json['name'] as String,
+      path: json['path'] as String,
+      public: json['public'] as bool,
+      description: json['description'] as String,
+      url: json['url'] as String,
+      summary: json['summary'] as String?,
+    );
+
+Map<String, dynamic> _$EncryptedBookModelToJson(EncryptedBookModel instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'namespace': instance.namespace,
+      'public': instance.public,
+      'description': instance.description,
+      'url': instance.url,
+      'path': instance.path,
+      'summary': instance.summary,
     };
