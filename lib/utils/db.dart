@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert' as convert;
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:cotally/stores/stores.dart';
 import 'package:cotally/utils/api/base_api.dart';
 import 'package:cotally/utils/constants.dart';
@@ -10,7 +9,6 @@ import 'package:cotally/utils/models/user.dart';
 import 'package:cotally/utils/models/workspace.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:path/path.dart';
 import 'package:bcrypt/bcrypt.dart';
 import 'package:uuid/uuid.dart';
@@ -27,9 +25,8 @@ final store = Store();
 class DB {
   DB._();
   static final DB instance = DB._();
-  factory DB() {
-    return instance;
-  }
+  factory DB() => instance;
+
   String _pwd = "";
   late String basePath;
   late Storage storage = Storage.bind(this);
@@ -41,16 +38,21 @@ class DB {
     remoteRepo.reload();
   }
 
-  Uint8List get pwd {
-    var list = Uint8List.fromList(convert.utf8.encode(_pwd));
-    return Uint8List.fromList(
-        [...list, ...Uint8List(PASSWORD_LENGTH - list.length)]);
+  String get pwd {
+    return _pwd;
   }
 
   setPwd(String value) {
     if (_pwd == value) return;
     _pwd = value;
     prepare();
+  }
+
+  clear() {
+    // pubKeyFile.delete();
+    remoteRepo.file.delete();
+    users.users.clear();
+    workspaces.workspaces.clear();
   }
 
   set collection(BoxCollection collection) {
@@ -100,7 +102,16 @@ class Workspaces {
   final DB db;
   Workspaces.bind(this.db);
 
-  Future create(String workspaceId, WorkspaceModel workspace) async {
+  Future create(String id, Org org) async {
+    final workspace = WorkspaceModel(
+      accessTokenId: id,
+      org: org,
+      books: await listRepos(id),
+    );
+    save(id, workspace);
+  }
+
+  Future save(String workspaceId, WorkspaceModel workspace) {
     return workspaces.save(workspaceId, workspace.toJson());
   }
 
@@ -115,6 +126,22 @@ class Workspaces {
 
   Future<WorkspaceModel?> get lastOpenedWorkspace {
     return get(db.remoteRepo.lastOpenedId);
+  }
+
+  Future<List<BookModel>> updateBooks(String workspaceId) async {
+    final repos = await get(workspaceId).then((workspace) async {
+      if (workspace == null) return null;
+      final repos = await listRepos(workspaceId);
+      workspace.books = repos;
+      save(workspaceId, workspace);
+      return repos;
+    });
+    return repos ?? [];
+  }
+
+  Future<List<BookModel>> listRepos(String id) async {
+    final api = getApi(id);
+    return api == null ? [] : (await api.listRepos() ?? []);
   }
 
   BaseRepoApi? getApi(String id) {
@@ -170,14 +197,6 @@ class RemoteRepo {
         id: ownerId,
       ),
     );
-    await db.workspaces.create(
-      workspaceId,
-      WorkspaceModel(
-        accessTokenId: workspaceId,
-        org: org,
-        books: [],
-      ),
-    );
     config.repos.add(RemoteRepoDataModel(
       org: org,
       accessToken: accessToken,
@@ -191,6 +210,7 @@ class RemoteRepo {
     }
     store.workspace.count.value = config.repos.length;
     await save();
+    await db.workspaces.create(workspaceId, org);
     return true;
   }
 

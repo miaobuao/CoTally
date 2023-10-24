@@ -15,3 +15,4 @@ user: 用户
 authenticationFailed: 认证失败
 accessToken: 访问令牌
 wrongAccessToken: 令牌错误
+empty: 啥都没有耶

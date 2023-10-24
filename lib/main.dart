@@ -24,6 +24,7 @@ void main() async {
     {"users", 'workspaces'},
     path: basePath.path,
   );
+  db.clear();
   runApp(const MyApp());
 }
 

@@ -1,18 +1,15 @@
-import 'dart:async';
-
 import 'package:cotally/component/icons.dart';
 import 'package:cotally/generated/l10n.dart';
 import 'package:cotally/stores/stores.dart';
-import 'package:cotally/utils/api/api.dart';
 import 'package:cotally/utils/datetime.dart';
 import 'package:cotally/utils/db.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:get/get.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 final store = Store();
 
+// ignore: must_be_immutable
 class WorkspacePage extends StatelessWidget {
   final db = DB();
   String workspaceId = store.workspace.currentId.value;
@@ -51,20 +48,21 @@ class WorkspacePage extends StatelessWidget {
           workspaceId = store.workspace.currentId.value;
         }
         return FutureBuilder(
-          future: Future.microtask(() async {
-            final api = db.workspaces.getApi(workspaceId);
-            if (api == null) return null;
-            return await api.listRepos();
-          }),
+          future: db.workspaces.get(workspaceId),
           builder: (context, snapshot) {
             if (isWaiting(snapshot.connectionState)) {
-              return Text("loading");
+              // TODO: i18n
+              return const Text("loading");
+            }
+            final itemCount = snapshot.data?.books.length ?? 0;
+            if (itemCount == 0) {
+              return const Text("empty");
             }
             return ListView.builder(
-              itemCount: snapshot.data?.length ?? 10,
+              itemCount: itemCount,
               itemBuilder: (BuildContext context, int index) {
                 return ListTile(
-                  title: Text(snapshot.data?[index].url ?? ''),
+                  title: Text(snapshot.data?.books[index].url ?? ''),
                 );
               },
             );
