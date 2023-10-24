@@ -56,13 +56,13 @@ class AccessTokenPage extends StatelessWidget {
     }
     final db = DB();
     showDialog(context: context, builder: (context) => LoadingDialog());
-    db.remoteRepo.add(org: org, accessToken: token).then((success) {
+    db.remoteRepo.add(org: org, accessToken: token).then((workspace) {
       Navigator.pop(context);
-      if (success) {
-        toast.add(S.current.done, type: ToastType.success);
-        Get.offAllNamed("/workspace");
-      } else {
+      if (workspace == null) {
         toast.add(S.current.wrongAccessToken, type: ToastType.error);
+      } else {
+        toast.add(S.current.done, type: ToastType.success);
+        Get.offAllNamed("/workspace", arguments: workspace.accessTokenId);
       }
     }).onError((error, stackTrace) {
       Navigator.pop(context);

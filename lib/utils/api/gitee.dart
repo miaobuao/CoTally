@@ -166,6 +166,12 @@ class GiteeApi implements BaseRepoApi {
       'content': base64.encode(utf8.encode(content)),
     }).then((value) => value.statusCode == 200);
   }
+
+  @override
+  Future<String?> getFile({
+    required BookModel bookModel,
+    required String filePath,
+  }) async {}
 }
 
 BookModel parseBook(dynamic data) {

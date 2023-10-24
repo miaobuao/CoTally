@@ -1,3 +1,4 @@
 watchdog
 meo
 pyyaml
+json5

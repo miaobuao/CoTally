@@ -6,6 +6,6 @@ class WorkspaceStore {
   static final WorkspaceStore _instance = WorkspaceStore._internal();
 
   final count = 0.obs;
-  final currentId = "".obs;
+  // final currentId = "".obs;
   final lastUpdated = DateTime.now().obs;
 }

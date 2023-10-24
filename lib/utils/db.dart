@@ -30,9 +30,10 @@ class DB {
   String _pwd = "";
   late String basePath;
   late Storage storage = Storage.bind(this);
-  late final RemoteRepo remoteRepo = RemoteRepo.bind(this);
-  late final Users users = Users.bind(this);
-  late final Workspaces workspaces = Workspaces.bind(this);
+  late final remoteRepo = RemoteRepo.bind(this);
+  late final users = Users.bind(this);
+  late final workspaces = Workspaces.bind(this);
+  late final fs = FS.bind(this);
 
   void prepare() {
     remoteRepo.reload();
@@ -42,7 +43,7 @@ class DB {
     return _pwd;
   }
 
-  setPwd(String value) {
+  set pwd(String value) {
     if (_pwd == value) return;
     _pwd = value;
     prepare();
@@ -72,7 +73,7 @@ class DB {
   }
 
   Future registerPassword(String password) async {
-    setPwd(password);
+    pwd = password;
     final String hashed =
         BCrypt.hashpw(password, BCrypt.gensalt(logRounds: 31));
     await pubKeyFile.writeAsString(hashed);
@@ -82,10 +83,19 @@ class DB {
     if (!pubKeyFile.existsSync()) return false;
     final hashed = pubKeyFile.readAsStringSync();
     if (BCrypt.checkpw(password, hashed)) {
-      setPwd(password);
+      pwd = password;
       return true;
     }
     return false;
+  }
+
+  String get lastOpenedId {
+    return remoteRepo.config.lastOpenedId ?? remoteRepo.config.repos[0].id;
+  }
+
+  set lastOpenedId(String id) {
+    remoteRepo.config.lastOpenedId = id;
+    remoteRepo.save();
   }
 }
 
@@ -111,21 +121,25 @@ class Workspaces {
   final DB db;
   Workspaces.bind(this.db);
 
-  Future create(String id, Org org) async {
+  Future<WorkspaceModel> create(String id, Org org) async {
     final workspace = WorkspaceModel(
       accessTokenId: id,
       org: org,
       books: await listRepos(id),
     );
-    save(id, workspace);
+    await save(id, workspace);
+    return workspace;
   }
 
   Future save(String workspaceId, WorkspaceModel workspace) {
     return workspaces.save(workspaceId, workspace.toJson());
   }
 
-  Future<WorkspaceModel?> get(String id) async {
+  Future<WorkspaceModel?> open(String id) async {
     final json = await workspaces.get(id);
+    if (db.lastOpenedId != id) {
+      db.lastOpenedId = id;
+    }
     return json == null ? null : WorkspaceModel.fromJson(json);
   }
 
@@ -133,15 +147,15 @@ class Workspaces {
     return db.storage.workspaces;
   }
 
-  Future<List<BookModel>> updateBooks(String workspaceId) async {
-    final repos = await get(workspaceId).then((workspace) async {
+  Future<WorkspaceModel?> updateBooks(String workspaceId) async {
+    final space = await open(workspaceId).then((workspace) async {
       if (workspace == null) return null;
       final repos = await listRepos(workspaceId);
       workspace.books = repos;
       await save(workspaceId, workspace);
-      return repos;
+      return workspace;
     });
-    return repos ?? [];
+    return space;
   }
 
   Future<BookModel?> createBook(
@@ -183,24 +197,6 @@ class Workspaces {
   }
 }
 
-class Books {
-  final DB db;
-  Books.bind(this.db);
-
-  Future<UserModel?> get(String id) async {
-    final json = await books.get(id);
-    return json == null ? null : UserModel.fromJson(json);
-  }
-
-  Future create(String uuid, UserModel user) async {
-    return await books.save(uuid, user.toJson());
-  }
-
-  JsonBox get books {
-    return db.storage.books;
-  }
-}
-
 class RemoteRepo {
   late final DB db;
   late var config = RemoteRepoConfigModel(repos: []);
@@ -211,30 +207,24 @@ class RemoteRepo {
     return File(join(db.basePath, "remote-repo.conf"));
   }
 
-  String get lastOpenedId {
-    return config.lastOpenedId ?? config.repos[0].id;
-  }
-
   reload() {
     if (db.pwd.isNotEmpty && file.existsSync()) {
-      file.readAsString().then((data) {
-        final decrypted = db.decrypt(data);
-        if (decrypted == null) return;
-        final json = convert.jsonDecode(decrypted);
-        config = RemoteRepoConfigModel.fromJson(json);
-        store.workspace.count.value = config.repos.length;
-        store.workspace.currentId.value = config.lastOpenedId ?? "";
-      });
+      final data = file.readAsStringSync();
+      final decrypted = db.decrypt(data);
+      if (decrypted == null) return;
+      final json = convert.jsonDecode(decrypted);
+      config = RemoteRepoConfigModel.fromJson(json);
+      store.workspace.count.value = config.repos.length;
     }
   }
 
-  Future<bool> add({
+  Future<WorkspaceModel?> add({
     required Org org,
     required String accessToken,
   }) async {
     final owner = await apiOf(org).checkAccessToken(accessToken: accessToken);
     if (owner == null) {
-      return false;
+      return null;
     }
     final ownerId = uuid.v1();
     final workspaceId = uuid.v1();
@@ -253,14 +243,13 @@ class RemoteRepo {
       id: workspaceId,
       ownerId: ownerId,
     ));
-    if (config.repos.length == 1) {
-      config.lastOpenedId = workspaceId;
-      store.workspace.currentId.value = workspaceId;
-    }
     store.workspace.count.value = config.repos.length;
-    await save();
-    await db.workspaces.create(workspaceId, org);
-    return true;
+    if (config.repos.length == 1) {
+      db.lastOpenedId = workspaceId;
+    } else {
+      await save();
+    }
+    return await db.workspaces.create(workspaceId, org);
   }
 
   RemoteRepoDataModel getByIndex(int idx) {
@@ -311,5 +300,23 @@ class JsonBox {
 
   Future clear() async {
     return box.then((value) => value.clear());
+  }
+}
+
+class FS {
+  late final DB db;
+  FS.bind(this.db);
+
+  String getOrgPath(Org org) {
+    return join(db.basePath, org.toString());
+  }
+
+  String getBookPath(Org org, BookModel book) {
+    return join(getOrgPath(org), book.namespace, book.name);
+  }
+
+  Directory getBookDir(Org org, BookModel book) {
+    final path = getBookPath(org, book);
+    return Directory(path);
   }
 }

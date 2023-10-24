@@ -8,7 +8,9 @@ import 'package:cotally/stores/stores.dart';
 import 'package:cotally/utils/constants.dart';
 import 'package:cotally/utils/datetime.dart';
 import 'package:cotally/utils/db.dart';
+import 'package:cotally/utils/models/workspace.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_fc/flutter_fc.dart';
 import 'package:get/get.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -17,10 +19,25 @@ final store = Store();
 // ignore: must_be_immutable
 class WorkspacePage extends StatelessWidget {
   final db = DB();
+  final books = RxList<BookModel>([]);
+  final loading = false.obs;
+  WorkspaceModel? workspace;
   WorkspacePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final workspaceId = Get.arguments as String;
+    loading.value = true;
+    db.workspaces.open(workspaceId).then((value) {
+      if (value == null) {
+        return;
+      }
+      workspace = value;
+      books.value = value.books;
+    }).whenComplete(() {
+      loading.value = false;
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: Text(S.current.appName),
@@ -47,36 +64,46 @@ class WorkspacePage extends StatelessWidget {
               );
             })),
       ),
-      body: Obx(() {
-        final workspaceId = store.workspace.currentId.value;
-        return FutureBuilder(
-          future: db.workspaces.get(workspaceId),
-          builder: (context, snapshot) {
-            if (isWaiting(snapshot.connectionState)) {
-              return LoadingDialog();
-            }
-            final itemCount = snapshot.data?.books.length ?? 0;
-            if (itemCount == 0) {
-              return const Text("empty");
-            }
-            return ListView.builder(
-              itemCount: itemCount,
-              itemBuilder: (BuildContext context, int index) {
-                return ListTile(
-                  title: Text(snapshot.data?.books[index].url ?? ''),
-                );
-              },
-            );
+      body: RefreshIndicator(
+          onRefresh: () async {
+            workspace = await db.workspaces.updateBooks(workspaceId);
+            books.value = workspace!.books;
           },
-        );
-      }),
+          child: Obx(() => loading.value
+              ? LoadingDialog()
+              : ListView.builder(
+                  itemCount: books.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    final book = books[index];
+                    Widget child;
+                    // if (!db.fs.getBookDir(workspace!.org, book).existsSync()) {
+
+                    child = ListTile(
+                      title: Text("${book.namespace}/${book.name}"),
+                      subtitle: Text(book.summary ?? ''),
+                      onTap: () {
+                        print("taptap");
+                      },
+                    );
+                    // TODO: 把body整个写成stateful widget
+                    return Dismissible(
+                      key: Key('$index'),
+                      child: child,
+                      onDismissed: (DismissDirection direction) {
+                        books.remove(book);
+                      },
+                    );
+                  },
+                ))),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           showDialog(
               barrierDismissible: false,
               context: context,
               builder: (context) {
-                return CreateRepoDialog();
+                return CreateRepoDialog(
+                  workspaceId: workspaceId,
+                );
               });
         },
         child: const Icon(Icons.add),
@@ -94,7 +121,8 @@ class CreateRepoDialog extends StatelessWidget {
   final summary = "".obs;
   final org = Org.gitee.obs;
   final public = true.obs;
-  CreateRepoDialog({super.key});
+  final String workspaceId;
+  CreateRepoDialog({super.key, required this.workspaceId});
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +135,7 @@ class CreateRepoDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Create Repo",
+              "aaa",
               style: TextStyle(fontSize: 24),
             ),
             space,
@@ -142,7 +170,7 @@ class CreateRepoDialog extends StatelessWidget {
             DB()
                 .workspaces
                 .createBook(
-                  store.workspace.currentId.value,
+                  workspaceId,
                   name.value,
                   summary.value,
                   public.value,

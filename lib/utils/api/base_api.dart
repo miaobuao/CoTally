@@ -54,6 +54,11 @@ abstract class BaseRepoApi {
     required String content,
     required String message,
   });
+
+  Future<String?> getFile({
+    required BookModel bookModel,
+    required String filePath,
+  });
 }
 
 enum RepoPermission {
