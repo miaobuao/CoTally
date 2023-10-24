@@ -31,6 +31,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "cannotBeEmpty": m0,
         "confirm": MessageLookupByLibrary.simpleMessage("确认"),
         "done": MessageLookupByLibrary.simpleMessage("完成"),
+        "empty": MessageLookupByLibrary.simpleMessage("啥都没有耶"),
         "encryptionSettings": MessageLookupByLibrary.simpleMessage("加密设置"),
         "enterPwd": MessageLookupByLibrary.simpleMessage("请输入密码"),
         "enterPwdAgain": MessageLookupByLibrary.simpleMessage("再输入一次密码"),

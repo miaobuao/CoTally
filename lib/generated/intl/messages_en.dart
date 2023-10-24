@@ -32,6 +32,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "cannotBeEmpty": m0,
         "confirm": MessageLookupByLibrary.simpleMessage("Confirm"),
         "done": MessageLookupByLibrary.simpleMessage("Done"),
+        "empty": MessageLookupByLibrary.simpleMessage("Empty"),
         "encryptionSettings":
             MessageLookupByLibrary.simpleMessage("Encryption Settings"),
         "enterPwd": MessageLookupByLibrary.simpleMessage("Enter password"),

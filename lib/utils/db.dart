@@ -138,7 +138,7 @@ class Workspaces {
       if (workspace == null) return null;
       final repos = await listRepos(workspaceId);
       workspace.books = repos;
-      save(workspaceId, workspace);
+      await save(workspaceId, workspace);
       return repos;
     });
     return repos ?? [];
