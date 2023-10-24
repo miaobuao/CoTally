@@ -173,7 +173,7 @@ BookModel parseBook(dynamic data) {
     namespace: data['namespace']['path'],
     name: data['name'],
     public: data['public'],
-    description: data['description'],
+    description: data['description'] ?? '',
     url: data['url'],
     path: data['path'],
   );

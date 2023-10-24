@@ -1,4 +1,5 @@
 import 'package:cotally/component/button.dart';
+import 'package:cotally/component/dialog.dart';
 import 'package:cotally/component/input.dart';
 import 'package:cotally/component/toast.dart';
 import 'package:cotally/generated/l10n.dart';
@@ -13,7 +14,7 @@ class AccessTokenPage extends StatelessWidget {
   AccessTokenPage({super.key});
 
   final tokenFieldController = TextEditingController();
-
+  final loading = false.obs;
   Org org = Org.gitee;
 
   @override
@@ -34,7 +35,9 @@ class AccessTokenPage extends StatelessWidget {
                 const Spacer(),
                 ButtonGroup(
                   buttons: Buttons.submit,
-                  onSubmit: onSubmit,
+                  onSubmit: () {
+                    onSubmit(context);
+                  },
                 ),
               ],
             ).marginOnly(top: 10),
@@ -44,7 +47,7 @@ class AccessTokenPage extends StatelessWidget {
     );
   }
 
-  void onSubmit() {
+  onSubmit(BuildContext context) {
     final token = tokenFieldController.text;
     if (token.isEmpty) {
       toast.add(S.current.cannotBeEmpty(S.current.accessToken),
@@ -52,13 +55,17 @@ class AccessTokenPage extends StatelessWidget {
       return;
     }
     final db = DB();
+    showDialog(context: context, builder: (context) => LoadingDialog());
     db.remoteRepo.add(org: org, accessToken: token).then((success) {
+      Navigator.pop(context);
       if (success) {
         toast.add(S.current.done, type: ToastType.success);
         Get.offAllNamed("/workspace");
       } else {
         toast.add(S.current.wrongAccessToken, type: ToastType.error);
       }
+    }).onError((error, stackTrace) {
+      Navigator.pop(context);
     });
   }
 }

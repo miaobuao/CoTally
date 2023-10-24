@@ -167,8 +167,10 @@ class Workspaces {
         ? []
         : await api.listRepos().then((repos) {
             if (repos == null) return [];
-            return List.from(repos.where(
-                (element) => db.decrypt(element.description) == DESCRIPTION));
+            return List.from(repos.where((element) => element.description ==
+                    null
+                ? false
+                : db.decrypt(element.description as String) == DESCRIPTION));
           });
   }
 
@@ -178,6 +180,24 @@ class Workspaces {
     final api = apiOf(repo.org);
     api.accessToken = repo.accessToken;
     return api;
+  }
+}
+
+class Books {
+  final DB db;
+  Books.bind(this.db);
+
+  Future<UserModel?> get(String id) async {
+    final json = await books.get(id);
+    return json == null ? null : UserModel.fromJson(json);
+  }
+
+  Future create(String uuid, UserModel user) async {
+    return await books.save(uuid, user.toJson());
+  }
+
+  JsonBox get books {
+    return db.storage.books;
   }
 }
 
@@ -267,6 +287,7 @@ class Storage {
 
   late final users = JsonBox.bind(this, "users");
   late final workspaces = JsonBox.bind(this, "workspaces");
+  late final books = JsonBox.bind(this, 'books');
 }
 
 class JsonBox {

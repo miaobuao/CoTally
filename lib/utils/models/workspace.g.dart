@@ -34,7 +34,7 @@ BookModel _$BookModelFromJson(Map<String, dynamic> json) => BookModel(
       name: json['name'] as String,
       path: json['path'] as String,
       public: json['public'] as bool,
-      description: json['description'] as String,
+      description: json['description'] as String?,
       url: json['url'] as String,
       summary: json['summary'] as String?,
     );
@@ -55,7 +55,7 @@ EncryptedBookModel _$EncryptedBookModelFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       path: json['path'] as String,
       public: json['public'] as bool,
-      description: json['description'] as String,
+      description: json['description'] as String?,
       url: json['url'] as String,
       summary: json['summary'] as String?,
     );

@@ -21,9 +21,13 @@ void main() async {
   db.basePath = basePath.path;
   db.collection = await BoxCollection.open(
     "CoTally",
-    {"users", 'workspaces'},
+    {
+      "users",
+      'workspaces',
+    },
     path: basePath.path,
   );
+  await db.clear();
   runApp(const MyApp());
 }
 

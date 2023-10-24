@@ -33,6 +33,8 @@ String? decryptByPwd(String pwd, String encrypted) {
     final decrypted =
         encrypter.decrypt(Encrypted.fromBase64(encrypted), iv: iv);
     return decrypted;
+  } on Error catch (_) {
+    return null;
   } on Exception catch (_) {
     return null;
   }

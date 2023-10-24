@@ -27,7 +27,7 @@ class BookModel {
   final String name;
   final String namespace;
   final bool public;
-  String description;
+  String? description;
   String url;
   String path;
   String? summary;
@@ -48,7 +48,7 @@ class BookModel {
       name: name,
       path: path,
       public: public,
-      description: encrypt(description),
+      description: description == null ? null : encrypt(description as String),
       summary: summary == null ? null : encrypt(summary ?? ''),
       url: url,
     );
@@ -77,8 +77,8 @@ class EncryptedBookModel extends BookModel {
       name: name,
       path: path,
       public: public,
-      description: decrypt(description),
-      summary: summary == null ? null : decrypt(summary ?? ''),
+      description: description == null ? null : decrypt(description as String),
+      summary: summary == null ? null : decrypt(summary as String),
       url: url,
     );
   }
