@@ -1,101 +1,37 @@
 import 'package:cotally/component/button.dart';
 import 'package:cotally/component/dialog.dart';
+import 'package:cotally/component/future.dart';
 import 'package:cotally/component/header.dart';
 import 'package:cotally/component/icons.dart';
 import 'package:cotally/component/input.dart';
 import 'package:cotally/generated/l10n.dart';
 import 'package:cotally/stores/stores.dart';
+import 'package:cotally/style/colors.dart';
 import 'package:cotally/utils/constants.dart';
 import 'package:cotally/utils/datetime.dart';
 import 'package:cotally/utils/db.dart';
+import 'package:cotally/utils/models/config.dart';
+import 'package:cotally/utils/models/user.dart';
 import 'package:cotally/utils/models/workspace.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_fc/flutter_fc.dart';
 import 'package:get/get.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
 final store = Store();
 
 // ignore: must_be_immutable
 class WorkspacePage extends StatelessWidget {
-  final db = DB();
-  final books = RxList<BookModel>([]);
-  final loading = false.obs;
-  WorkspaceModel? workspace;
-  WorkspacePage({super.key});
+  const WorkspacePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     final workspaceId = Get.arguments as String;
-    loading.value = true;
-    db.workspaces.open(workspaceId).then((value) {
-      if (value == null) {
-        return;
-      }
-      workspace = value;
-      books.value = value.books;
-    }).whenComplete(() {
-      loading.value = false;
-    });
 
     return Scaffold(
       appBar: AppBar(
         title: Text(S.current.appName),
       ),
       drawer: const WorkspaceDrawer(),
-      // drawer: Drawer(
-      //   child: Obx(() => ListView.builder(
-      //       itemCount: store.workspace.count.value,
-      //       itemBuilder: (context, idx) {
-      //         final data = db.remoteRepo.getByIndex(idx);
-      //         final owner = db.users.get(data.ownerId);
-      //         return FutureBuilder(
-      //           future: owner,
-      //           builder: (context, snapshot) {
-      //             return Skeletonizer(
-      //               enabled: isWaiting(snapshot.connectionState),
-      //               child: ListTile(
-      //                 title: Text(snapshot.data?.info.name ?? ''),
-      //                 subtitle: Text(timeFormat(data.updateTime)),
-      //                 leading: Icon(GitAppIconData.of(snapshot.data?.org)),
-      //                 onTap: () {},
-      //               ),
-      //             );
-      //           },
-      //         );
-      //       })),
-      // ),
-      body: RefreshIndicator(
-          onRefresh: () async {
-            workspace = await db.workspaces.updateBooksOf(workspaceId);
-            books.value = workspace!.books;
-          },
-          child: Obx(() => loading.value
-              ? LoadingDialog()
-              : ListView.builder(
-                  itemCount: books.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    final book = books[index];
-                    Widget child;
-                    // if (!db.fs.getBookDir(workspace!.org, book).existsSync()) {
-
-                    child = ListTile(
-                      title: Text("${book.namespace}/${book.name}"),
-                      subtitle: Text(book.summary ?? ''),
-                      onTap: () {
-                        print("taptap");
-                      },
-                    );
-                    // TODO: 把body整个写成stateful widget
-                    return Dismissible(
-                      key: Key('$index'),
-                      child: child,
-                      onDismissed: (DismissDirection direction) {
-                        books.remove(book);
-                      },
-                    );
-                  },
-                ))),
+      body: const WorkspaceBody(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           showDialog(
@@ -113,8 +49,86 @@ class WorkspacePage extends StatelessWidget {
   }
 }
 
-bool isWaiting(ConnectionState state) {
-  return state != ConnectionState.done;
+class WorkspaceBody extends StatefulWidget {
+  const WorkspaceBody({super.key});
+
+  @override
+  State<WorkspaceBody> createState() => _WorkspaceBodyState();
+}
+
+class _WorkspaceBodyState extends State<WorkspaceBody> {
+  final db = DB();
+  WorkspaceModel? workspace;
+  bool loading = false;
+  List<BookModel> books = [];
+  late final workspaceId;
+
+  @override
+  void initState() {
+    super.initState();
+    loading = true;
+    workspaceId = Get.arguments as String;
+    db.workspaces.open(workspaceId).then((value) {
+      if (value == null) {
+        return;
+      }
+      workspace = value;
+      books = value.books;
+    }).whenComplete(() {
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      } else {
+        loading = false;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (loading) {
+      return LoadingDialog();
+    }
+    return RefreshIndicator(
+        onRefresh: () async {
+          workspace = await db.workspaces.updateBooksOf(workspaceId);
+          setState(() {
+            books = workspace!.books;
+          });
+        },
+        child: ListView.builder(
+          itemCount: books.length,
+          itemBuilder: (BuildContext context, int index) {
+            final book = books[index];
+            Widget child;
+            if (db.fs.getBookDir(workspace!.org, books[index]).existsSync()) {
+              child = ListTile(
+                title: Text("${book.namespace}/${book.name}"),
+                // subtitle: Text(book.summary ?? ''),
+                onTap: () {
+                  print("taptap");
+                },
+              );
+            } else {
+              child = ListTile(
+                enabled: false,
+                title: Text("${book.namespace}/${book.name}"),
+              );
+            }
+            return Dismissible(
+              background: Container(
+                color: dangerColor,
+              ),
+              key: UniqueKey(),
+              child: child,
+              onDismissed: (DismissDirection direction) {
+                books.remove(book);
+              },
+            );
+          },
+        ));
+  }
 }
 
 class WorkspaceDrawer extends StatefulWidget {
@@ -125,9 +139,65 @@ class WorkspaceDrawer extends StatefulWidget {
 }
 
 class _WorkspaceDrawerState extends State<WorkspaceDrawer> {
+  List<WorkspaceInfo> list = [];
+
+  @override
+  void initState() {
+    super.initState();
+    DB().workspaces.list.then((value) {
+      setState(() {
+        list = value
+            .map((e) => WorkspaceInfo(
+                  id: e.id,
+                  org: e.org,
+                ))
+            .toList();
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Drawer();
+    return Drawer(
+      child: ListView.builder(
+          itemCount: list.length,
+          itemBuilder: (context, idx) {
+            return ListTile(
+              title: FutureText(
+                future: list[idx].owner.then((value) => value!.info.name),
+                width: 100,
+              ),
+              subtitle: FutureText(
+                future: list[idx].updateTime.then(timeFormat),
+                width: 100,
+              ),
+              leading: Icon(GitAppIconData.of(list[idx].org)),
+              onTap: () {},
+            );
+          }),
+    );
+  }
+}
+
+class WorkspaceInfo {
+  final String id;
+  final Org org;
+  final db = DB();
+  WorkspaceInfo({
+    required this.id,
+    required this.org,
+  });
+
+  Future<EncryptedRemoteRepoDataModel?> get repo {
+    return db.remoteRepo.get(id);
+  }
+
+  Future<UserModel?> get owner {
+    return repo.then((value) => db.users.get(value!.ownerId));
+  }
+
+  Future<DateTime> get updateTime {
+    return repo.then((value) => value!.updateTime);
   }
 }
 

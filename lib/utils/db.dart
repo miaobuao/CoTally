@@ -188,11 +188,17 @@ class Workspaces {
   }
 
   Future<BaseRepoApi?> getApi(String id) async {
-    final repo = await db.remoteRepo.get(id);
+    final repo =
+        await db.remoteRepo.get(id).then((value) => value?.decrypt(db.decrypt));
     if (repo == null) return null;
     final api = apiOf(repo.org);
     api.accessToken = repo.accessToken;
     return api;
+  }
+
+  Future<Iterable<WorkspaceModel>> get list {
+    return box.iter
+        .then((value) => value.map((e) => WorkspaceModel.fromJson(e.$2)));
   }
 }
 
@@ -249,19 +255,17 @@ class RemoteRepo {
       updateTime: DateTime.now(),
       ownerId: ownerId,
     );
+    await box.save(repo.id, repo.encrypt(db.encrypt).toJson());
     await db.workspaces.create(workspaceId, org);
     if (!lastOpenedIdFile.existsSync()) {
       lastOpenedId = workspaceId;
     }
-    await box.save(repo.id, repo.encrypt(db.encrypt).toJson());
     return repo;
   }
 
-  Future<DecryptedRemoteRepoDataModel?> get(String id) async {
+  Future<EncryptedRemoteRepoDataModel?> get(String id) async {
     final json = await box.get(id);
-    return json == null
-        ? null
-        : EncryptedRemoteRepoDataModel.fromJson(json).decrypt(db.decrypt);
+    return json == null ? null : EncryptedRemoteRepoDataModel.fromJson(json);
   }
 }
 
@@ -295,6 +299,14 @@ class JsonBox {
     final data = await box.then((value) => value.get(key));
     if (data == null) return null;
     return convert.jsonDecode(data);
+  }
+
+  Future<Iterable<(String, Json)>> get iter {
+    return box
+        .then((value) => value.getAllValues())
+        .then((value) => value.entries)
+        .then(
+            (value) => value.map((e) => (e.key, convert.jsonDecode(e.value))));
   }
 
   Future clear() async {

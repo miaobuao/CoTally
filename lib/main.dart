@@ -28,7 +28,6 @@ void main() async {
     },
     path: basePath.path,
   );
-  await db.clear();
   runApp(const MyApp());
 }
 
