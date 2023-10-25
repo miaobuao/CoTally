@@ -31,6 +31,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "cancel": MessageLookupByLibrary.simpleMessage("Cancel"),
         "cannotBeEmpty": m0,
         "confirm": MessageLookupByLibrary.simpleMessage("Confirm"),
+        "create": MessageLookupByLibrary.simpleMessage("Create"),
+        "createBook": MessageLookupByLibrary.simpleMessage("Create Book"),
         "done": MessageLookupByLibrary.simpleMessage("Done"),
         "empty": MessageLookupByLibrary.simpleMessage("Empty"),
         "encryptionSettings":

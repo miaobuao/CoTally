@@ -6,12 +6,12 @@ part 'workspace.g.dart';
 @JsonSerializable(explicitToJson: true)
 class WorkspaceModel {
   final Org org;
-  final String accessTokenId;
+  final String id;
   List<BookModel> books;
   String? lastOpenedBookId;
 
   WorkspaceModel({
-    required this.accessTokenId,
+    required this.id,
     required this.org,
     required this.books,
     this.lastOpenedBookId,

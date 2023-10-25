@@ -21,13 +21,49 @@ class RemoteRepoDataModel {
   final DateTime updateTime;
   final String ownerId;
   RemoteRepoDataModel({
+    required this.id,
     required this.org,
     required this.accessToken,
     required this.updateTime,
-    required this.id,
     required this.ownerId,
   });
+  EncryptedRemoteRepoDataModel encrypt(String Function(String) encryptFunc) {
+    return EncryptedRemoteRepoDataModel(
+      id: id,
+      org: org,
+      accessToken: encryptFunc(accessToken),
+      updateTime: updateTime,
+      ownerId: ownerId,
+    );
+  }
+
   factory RemoteRepoDataModel.fromJson(Map<String, dynamic> json) =>
       _$RemoteRepoDataModelFromJson(json);
   Map<String, dynamic> toJson() => _$RemoteRepoDataModelToJson(this);
+}
+
+@JsonSerializable()
+class EncryptedRemoteRepoDataModel extends RemoteRepoDataModel {
+  EncryptedRemoteRepoDataModel({
+    required super.id,
+    required super.org,
+    required super.accessToken,
+    required super.updateTime,
+    required super.ownerId,
+  });
+
+  RemoteRepoDataModel decrypt(String Function(String) decryptFunc) {
+    return RemoteRepoDataModel(
+      id: id,
+      org: org,
+      accessToken: decryptFunc(accessToken),
+      updateTime: updateTime,
+      ownerId: ownerId,
+    );
+  }
+
+  factory EncryptedRemoteRepoDataModel.fromJson(Map<String, dynamic> json) =>
+      _$EncryptedRemoteRepoDataModelFromJson(json);
+  @override
+  Map<String, dynamic> toJson() => _$EncryptedRemoteRepoDataModelToJson(this);
 }

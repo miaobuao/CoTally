@@ -30,6 +30,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "cancel": MessageLookupByLibrary.simpleMessage("取消"),
         "cannotBeEmpty": m0,
         "confirm": MessageLookupByLibrary.simpleMessage("确认"),
+        "create": MessageLookupByLibrary.simpleMessage("创建"),
+        "createBook": MessageLookupByLibrary.simpleMessage("创建账本"),
         "done": MessageLookupByLibrary.simpleMessage("完成"),
         "empty": MessageLookupByLibrary.simpleMessage("啥都没有耶"),
         "encryptionSettings": MessageLookupByLibrary.simpleMessage("加密设置"),

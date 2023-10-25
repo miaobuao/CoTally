@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../style/colors.dart';
 import '../generated/l10n.dart';
 
 class Buttons {
@@ -9,26 +8,30 @@ class Buttons {
 }
 
 class SubmitButton extends ElevatedButton {
-  SubmitButton({
+  const SubmitButton({
+    super.key,
     required super.onPressed,
     required super.child,
   });
 }
 
 class ResetButton extends OutlinedButton {
-  ResetButton({
+  const ResetButton({
+    super.key,
     required super.onPressed,
     required super.child,
   });
 }
 
 class CancelButton extends TextButton {
-  CancelButton({
+  const CancelButton({
+    super.key,
     required super.onPressed,
     required super.child,
   });
 }
 
+// ignore: must_be_immutable
 class ButtonGroup extends StatelessWidget {
   final int buttons;
   final Axis? direction;

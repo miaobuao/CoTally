@@ -62,7 +62,7 @@ class AccessTokenPage extends StatelessWidget {
         toast.add(S.current.wrongAccessToken, type: ToastType.error);
       } else {
         toast.add(S.current.done, type: ToastType.success);
-        Get.offAllNamed("/workspace", arguments: workspace.accessTokenId);
+        Get.offAllNamed("/workspace", arguments: workspace.id);
       }
     }).onError((error, stackTrace) {
       Navigator.pop(context);

@@ -224,7 +224,7 @@ class VerifyView extends StatelessWidget {
     final db = DB();
     if (db.checkPassword(pwd)) {
       toast.add(S.current.done, type: ToastType.success);
-      if (db.remoteRepo.file.existsSync()) {
+      if (db.remoteRepo.lastOpenedIdFile.existsSync()) {
         Get.offAllNamed("/workspace", arguments: db.lastOpenedId);
       } else {
         Get.offAllNamed("/access_token");

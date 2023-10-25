@@ -42,31 +42,32 @@ class WorkspacePage extends StatelessWidget {
       appBar: AppBar(
         title: Text(S.current.appName),
       ),
-      drawer: Drawer(
-        child: Obx(() => ListView.builder(
-            itemCount: store.workspace.count.value,
-            itemBuilder: (context, idx) {
-              final data = db.remoteRepo.getByIndex(idx);
-              final owner = db.users.get(data.ownerId);
-              return FutureBuilder(
-                future: owner,
-                builder: (context, snapshot) {
-                  return Skeletonizer(
-                    enabled: isWaiting(snapshot.connectionState),
-                    child: ListTile(
-                      title: Text(snapshot.data?.info.name ?? ''),
-                      subtitle: Text(timeFormat(data.updateTime)),
-                      leading: Icon(GitAppIconData.of(snapshot.data?.org)),
-                      onTap: () {},
-                    ),
-                  );
-                },
-              );
-            })),
-      ),
+      drawer: const WorkspaceDrawer(),
+      // drawer: Drawer(
+      //   child: Obx(() => ListView.builder(
+      //       itemCount: store.workspace.count.value,
+      //       itemBuilder: (context, idx) {
+      //         final data = db.remoteRepo.getByIndex(idx);
+      //         final owner = db.users.get(data.ownerId);
+      //         return FutureBuilder(
+      //           future: owner,
+      //           builder: (context, snapshot) {
+      //             return Skeletonizer(
+      //               enabled: isWaiting(snapshot.connectionState),
+      //               child: ListTile(
+      //                 title: Text(snapshot.data?.info.name ?? ''),
+      //                 subtitle: Text(timeFormat(data.updateTime)),
+      //                 leading: Icon(GitAppIconData.of(snapshot.data?.org)),
+      //                 onTap: () {},
+      //               ),
+      //             );
+      //           },
+      //         );
+      //       })),
+      // ),
       body: RefreshIndicator(
           onRefresh: () async {
-            workspace = await db.workspaces.updateBooks(workspaceId);
+            workspace = await db.workspaces.updateBooksOf(workspaceId);
             books.value = workspace!.books;
           },
           child: Obx(() => loading.value
@@ -114,6 +115,20 @@ class WorkspacePage extends StatelessWidget {
 
 bool isWaiting(ConnectionState state) {
   return state != ConnectionState.done;
+}
+
+class WorkspaceDrawer extends StatefulWidget {
+  const WorkspaceDrawer({super.key});
+
+  @override
+  State<WorkspaceDrawer> createState() => _WorkspaceDrawerState();
+}
+
+class _WorkspaceDrawerState extends State<WorkspaceDrawer> {
+  @override
+  Widget build(BuildContext context) {
+    return Drawer();
+  }
 }
 
 class CreateRepoDialog extends StatelessWidget {

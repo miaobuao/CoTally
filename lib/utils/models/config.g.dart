@@ -24,10 +24,10 @@ Map<String, dynamic> _$RemoteRepoConfigModelToJson(
 
 RemoteRepoDataModel _$RemoteRepoDataModelFromJson(Map<String, dynamic> json) =>
     RemoteRepoDataModel(
+      id: json['id'] as String,
       org: $enumDecode(_$OrgEnumMap, json['org']),
       accessToken: json['accessToken'] as String,
       updateTime: DateTime.parse(json['updateTime'] as String),
-      id: json['id'] as String,
       ownerId: json['ownerId'] as String,
     );
 
@@ -45,3 +45,23 @@ const _$OrgEnumMap = {
   Org.gitee: 'gitee',
   Org.github: 'github',
 };
+
+EncryptedRemoteRepoDataModel _$EncryptedRemoteRepoDataModelFromJson(
+        Map<String, dynamic> json) =>
+    EncryptedRemoteRepoDataModel(
+      id: json['id'] as String,
+      org: $enumDecode(_$OrgEnumMap, json['org']),
+      accessToken: json['accessToken'] as String,
+      updateTime: DateTime.parse(json['updateTime'] as String),
+      ownerId: json['ownerId'] as String,
+    );
+
+Map<String, dynamic> _$EncryptedRemoteRepoDataModelToJson(
+        EncryptedRemoteRepoDataModel instance) =>
+    <String, dynamic>{
+      'accessToken': instance.accessToken,
+      'id': instance.id,
+      'org': _$OrgEnumMap[instance.org]!,
+      'updateTime': instance.updateTime.toIso8601String(),
+      'ownerId': instance.ownerId,
+    };

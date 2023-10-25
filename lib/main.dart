@@ -24,9 +24,11 @@ void main() async {
     {
       "users",
       'workspaces',
+      'tokens',
     },
     path: basePath.path,
   );
+  await db.clear();
   runApp(const MyApp());
 }
 
