@@ -24,7 +24,7 @@ String encryptByPwd(String pwd, String plainText) {
   return "${iv.base64}.${encrypted.base64}";
 }
 
-String? decryptByPwd(String pwd, String encrypted) {
+String decryptByPwd(String pwd, String encrypted) {
   try {
     final key = preparePwd(pwd);
     final splitted = encrypted.split(".");
@@ -34,8 +34,10 @@ String? decryptByPwd(String pwd, String encrypted) {
         encrypter.decrypt(Encrypted.fromBase64(encrypted), iv: iv);
     return decrypted;
   } on Error catch (_) {
-    return null;
+    throw DecyptError();
   } on Exception catch (_) {
-    return null;
+    throw DecyptError();
   }
 }
+
+class DecyptError extends Error {}

@@ -44,7 +44,7 @@ class DB {
     return encryptByPwd(pwd, plain);
   }
 
-  String? decrypt(String encrypted) {
+  String decrypt(String encrypted) {
     return decryptByPwd(pwd, encrypted);
   }
 
@@ -171,10 +171,19 @@ class Workspaces {
         ? []
         : await api.listRepos().then((repos) {
             if (repos == null) return [];
-            return List.from(repos.where((element) => element.description ==
-                    null
-                ? false
-                : db.decrypt(element.description as String) == DESCRIPTION));
+            return List.from(repos.where((element) {
+              if (element.description == null) {
+                return false;
+              }
+              try {
+                if (db.decrypt(element.description as String) == DESCRIPTION) {
+                  return true;
+                }
+              } on DecyptError catch (_) {
+                return false;
+              }
+              return false;
+            }));
           });
   }
 
@@ -215,7 +224,7 @@ class RemoteRepo {
     lastOpenedIdFile.writeAsStringSync(id);
   }
 
-  Future<RemoteRepoDataModel?> add({
+  Future<DecryptedRemoteRepoDataModel?> add({
     required Org org,
     required String accessToken,
   }) async {
@@ -233,7 +242,7 @@ class RemoteRepo {
         id: ownerId,
       ),
     );
-    final repo = RemoteRepoDataModel(
+    final repo = DecryptedRemoteRepoDataModel(
       id: workspaceId,
       org: org,
       accessToken: accessToken,
@@ -248,9 +257,11 @@ class RemoteRepo {
     return repo;
   }
 
-  Future<EncryptedRemoteRepoDataModel?> get(String id) async {
+  Future<DecryptedRemoteRepoDataModel?> get(String id) async {
     final json = await box.get(id);
-    return json == null ? null : EncryptedRemoteRepoDataModel.fromJson(json);
+    return json == null
+        ? null
+        : EncryptedRemoteRepoDataModel.fromJson(json).decrypt(db.decrypt);
   }
 }
 

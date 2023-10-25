@@ -65,3 +65,23 @@ Map<String, dynamic> _$EncryptedRemoteRepoDataModelToJson(
       'updateTime': instance.updateTime.toIso8601String(),
       'ownerId': instance.ownerId,
     };
+
+DecryptedRemoteRepoDataModel _$DecryptedRemoteRepoDataModelFromJson(
+        Map<String, dynamic> json) =>
+    DecryptedRemoteRepoDataModel(
+      id: json['id'] as String,
+      org: $enumDecode(_$OrgEnumMap, json['org']),
+      accessToken: json['accessToken'] as String,
+      updateTime: DateTime.parse(json['updateTime'] as String),
+      ownerId: json['ownerId'] as String,
+    );
+
+Map<String, dynamic> _$DecryptedRemoteRepoDataModelToJson(
+        DecryptedRemoteRepoDataModel instance) =>
+    <String, dynamic>{
+      'accessToken': instance.accessToken,
+      'id': instance.id,
+      'org': _$OrgEnumMap[instance.org]!,
+      'updateTime': instance.updateTime.toIso8601String(),
+      'ownerId': instance.ownerId,
+    };
