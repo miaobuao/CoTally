@@ -9,6 +9,7 @@ import 'package:cotally/style/colors.dart';
 import 'package:cotally/utils/constants.dart';
 import 'package:cotally/utils/datetime.dart';
 import 'package:cotally/utils/db.dart';
+import 'package:cotally/utils/event_bus.dart';
 import 'package:cotally/utils/models/config.dart';
 import 'package:cotally/utils/models/user.dart';
 import 'package:cotally/utils/models/workspace.dart';
@@ -17,9 +18,17 @@ import 'package:get/get.dart';
 
 final store = Store();
 
+late EventBus eventbus;
+
+enum Events {
+  updateWorkspace,
+}
+
 // ignore: must_be_immutable
 class WorkspacePage extends StatelessWidget {
-  const WorkspacePage({super.key});
+  WorkspacePage({super.key}) {
+    eventbus = EventBus();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,24 +71,34 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
   List<EncryptedBookModel> books = [];
   late final String workspaceId;
 
-  @override
-  void initState() {
-    super.initState();
-    loading = true;
-    workspaceId = Get.arguments;
+  update() {
     db.workspaces.open(workspaceId).then((value) {
-      if (value == null) {
-        return;
-      }
+      if (value == null) return;
       workspace = value;
       books = value.books;
     }).whenComplete(() {
       if (mounted) {
-        setState(() {
-          loading = false;
-        });
-      } else {
-        loading = false;
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    workspaceId = Get.arguments;
+    eventbus.listen(Events.updateWorkspace, update);
+
+    loading = true;
+    db.workspaces.open(workspaceId).then((value) {
+      if (value == null) return;
+      workspace = value;
+      books = value.books;
+    }).whenComplete(() {
+      loading = false;
+      if (mounted) {
+        setState(() {});
       }
     });
   }
@@ -91,10 +110,8 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
     }
     return RefreshIndicator(
         onRefresh: () async {
-          workspace = await db.workspaces.updateBooksOf(workspaceId);
-          setState(() {
-            books = workspace!.books;
-          });
+          await db.workspaces.updateBooksOf(workspaceId);
+          eventbus.emit(Events.updateWorkspace);
         },
         child: ListView.builder(
           itemCount: books.length,
@@ -180,21 +197,26 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
         ),
       ).show(context).then((value) => value ? selected : Location.none);
     }).then((value) async {
-      if (value == Location.none) {
-        return false;
-      } else if (value == Location.local &&
-          await db.fs.removeLocalBook(workspaceId, book)) {
-        toast.add(S.current.done, type: ToastType.success);
-        return true;
-      } else if (value == Location.both &&
-          await db.fs.removeRemoteBook(workspaceId, book)) {
-        toast.add(S.current.done, type: ToastType.success);
-        return true;
+      bool flag = false;
+      if (value == Location.local) {
+        db.fs.removeLocalBook(workspaceId, book).then((value) {
+          toast.add(S.current.done, type: ToastType.success);
+        });
+        flag = true;
+      } else if (value == Location.both) {
+        db.fs.removeRemoteBook(workspaceId, book).then((value) {
+          toast.add(S.current.done, type: ToastType.success);
+        });
+        flag = true;
       } else if (value == Location.remote) {
         throw Exception("`Location` can not be `remote` while deleting");
       }
-      toast.add(S.current.failed, type: ToastType.error);
-      return false;
+      if (flag) {
+        eventbus.emit(Events.updateWorkspace);
+      } else {
+        toast.add(S.current.failed, type: ToastType.error);
+      }
+      return flag;
     });
   }
 }
@@ -304,7 +326,7 @@ class CreateRepoDialog extends StatelessWidget {
             ),
             space,
             Obx(() => SwitchListTile(
-                title: const Text("public"),
+                title: Text(S.current.public),
                 value: public.value,
                 onChanged: (value) {
                   public.value = value;
@@ -319,16 +341,17 @@ class CreateRepoDialog extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {
-            showDialog(context: context, builder: (context) => LoadingDialog());
-            DB()
-                .workspaces
+            showDialog(
+              context: context,
+              builder: (context) => LoadingDialog(),
+            );
+            db.workspaces
                 .createBook(
-                  workspaceId,
-                  name.value,
-                  summary.value,
-                  public.value,
-                )
-                .whenComplete(() => dismiss(context));
+                    workspaceId, name.value, summary.value, public.value)
+                .then((value) {
+              dismiss(context);
+              eventbus.emit(Events.updateWorkspace);
+            }).whenComplete(() => dismiss(context));
           },
           child: Text(S.current.create),
         ),

@@ -147,7 +147,7 @@ class Workspaces {
     bool public,
   ) async {
     final api = await getApi(workspaceId);
-    return api == null
+    final book = api == null
         ? null
         : await api.createRepo(
             name: name,
@@ -155,6 +155,11 @@ class Workspaces {
             summary: db.encrypt(summary),
             public: public,
           );
+    if (book == null) return null;
+    final workspace = await open(workspaceId);
+    workspace!.books.add(book);
+    await save(workspaceId, workspace);
+    return book;
   }
 
   Future<bool> removeBook(
@@ -162,6 +167,12 @@ class Workspaces {
     EncryptedBookModel book,
   ) async {
     final api = await getApi(workspaceId);
+    final workspace = await open(workspaceId);
+    final idx = workspace!.books.indexWhere((element) =>
+        element.namespace == book.namespace && element.name == book.name);
+    if (idx == -1) return true;
+    workspace.books.removeAt(idx);
+    await save(workspaceId, workspace);
     return api == null
         ? false
         : await api.deleteRepo(

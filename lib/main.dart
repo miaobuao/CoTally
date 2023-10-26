@@ -53,7 +53,7 @@ class MyApp extends StatelessWidget {
           '/access_token',
           AccessTokenPage(),
         ),
-        routerWrapper("/workspace", const WorkspacePage()),
+        routerWrapper("/workspace", WorkspacePage()),
       ],
       themeMode: ThemeMode.system,
       darkTheme: ThemeData(

@@ -57,6 +57,7 @@ dependencies:
   intl_utils: ^2.8.5
   sqlite3: ^2.1.0
   skeletonizer: ^0.8.0
+  event_bus: ^2.0.0
 
 dev_dependencies:
   flutter_test:
