@@ -11,7 +11,7 @@ WorkspaceModel _$WorkspaceModelFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       org: $enumDecode(_$OrgEnumMap, json['org']),
       books: (json['books'] as List<dynamic>)
-          .map((e) => BookModel.fromJson(e as Map<String, dynamic>))
+          .map((e) => EncryptedBookModel.fromJson(e as Map<String, dynamic>))
           .toList(),
       lastOpenedBookId: json['lastOpenedBookId'] as String?,
     );

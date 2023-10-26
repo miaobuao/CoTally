@@ -30,34 +30,30 @@ abstract class BaseRepoApi {
     int? page,
     int? perPage,
   });
-  Future<List<BookModel>?> listRepos({
+  Future<List<EncryptedBookModel>?> listRepos({
     int page = 1,
     int perPage = 100,
   });
 
-  Future<BookModel?> createRepo({
+  Future<EncryptedBookModel?> createRepo({
     required String name,
     required String description,
     required String summary,
     required bool public,
   });
 
-  Future<BookModel?> updateRepoSettings({
-    required BookModel book,
+  Future<EncryptedBookModel?> updateRepoSettings({
+    required EncryptedBookModel book,
     bool? private,
     String? description,
   });
 
   Future<bool> createFile({
-    required BookModel book,
+    required String namespace,
+    required String path,
     required String filePath,
     required String content,
     required String message,
-  });
-
-  Future<String?> getFile({
-    required BookModel bookModel,
-    required String filePath,
   });
 
   Future<bool> deleteRepo({

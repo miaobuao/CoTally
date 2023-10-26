@@ -77,7 +77,7 @@ class GiteeApi implements BaseRepoApi {
 
   // https://gitee.com/api/v5/swagger#/getV5UserRepos
   @override
-  Future<List<BookModel>?> listRepos({
+  Future<List<EncryptedBookModel>?> listRepos({
     int page = 1,
     int perPage = 100,
   }) async {
@@ -97,7 +97,7 @@ class GiteeApi implements BaseRepoApi {
 
   // https://gitee.com/api/v5/swagger#/postV5UserRepos
   @override
-  Future<BookModel?> createRepo({
+  Future<EncryptedBookModel?> createRepo({
     required String name,
     required String description,
     required String summary,
@@ -116,7 +116,8 @@ class GiteeApi implements BaseRepoApi {
       }
       final book = parseBook(data);
       if (await createFile(
-            book: book,
+            namespace: book.namespace,
+            path: book.path,
             filePath: 'summary',
             content: summary,
             message: DateTime.now().toString(),
@@ -130,8 +131,8 @@ class GiteeApi implements BaseRepoApi {
 
   // https://gitee.com/api/v5/swagger#/patchV5ReposOwnerRepo
   @override
-  Future<BookModel?> updateRepoSettings({
-    required BookModel book,
+  Future<EncryptedBookModel?> updateRepoSettings({
+    required EncryptedBookModel book,
     bool? private,
     String? description,
   }) async {
@@ -153,25 +154,19 @@ class GiteeApi implements BaseRepoApi {
   @override
   // https://gitee.com/api/v5/swagger#/postV5ReposOwnerRepoContentsPath
   Future<bool> createFile({
-    required BookModel book,
+    required String namespace,
+    required String path,
     required String filePath,
     required String content,
     required String message,
   }) async {
-    final url =
-        join("$base/repos/${book.namespace}/${book.path}/contents", filePath);
+    final url = join("$base/repos/$namespace/$path/contents", filePath);
     return await dio.post(url, data: {
       "access_token": accessToken,
       "message": message,
       'content': base64.encode(utf8.encode(content)),
     }).then((value) => value.statusCode == 200);
   }
-
-  @override
-  Future<String?> getFile({
-    required BookModel bookModel,
-    required String filePath,
-  }) async {}
 
   @override
   // https://gitee.com/api/v5/swagger#/deleteV5ReposOwnerRepo
@@ -186,8 +181,8 @@ class GiteeApi implements BaseRepoApi {
   }
 }
 
-BookModel parseBook(dynamic data) {
-  return BookModel(
+EncryptedBookModel parseBook(dynamic data) {
+  return EncryptedBookModel(
     namespace: data['namespace']['path'],
     name: data['name'],
     public: data['public'],

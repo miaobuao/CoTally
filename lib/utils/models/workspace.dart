@@ -7,7 +7,7 @@ part 'workspace.g.dart';
 class WorkspaceModel {
   final Org org;
   final String id;
-  List<BookModel> books;
+  List<EncryptedBookModel> books;
   String? lastOpenedBookId;
 
   WorkspaceModel({

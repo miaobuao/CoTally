@@ -1,7 +1,5 @@
-import 'package:cotally/component/button.dart';
 import 'package:cotally/component/dialog.dart';
 import 'package:cotally/component/future.dart';
-import 'package:cotally/component/header.dart';
 import 'package:cotally/component/icons.dart';
 import 'package:cotally/component/input.dart';
 import 'package:cotally/component/toast.dart';
@@ -61,7 +59,7 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
   final db = DB();
   WorkspaceModel? workspace;
   bool loading = false;
-  List<BookModel> books = [];
+  List<EncryptedBookModel> books = [];
   late final String workspaceId;
 
   @override
@@ -136,7 +134,7 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
   }
 
   Future<bool> showRemoveAlertDialog(
-      BuildContext context, BookModel book, bool cached) async {
+      BuildContext context, EncryptedBookModel book, bool cached) async {
     return await showDialog(
         context: context,
         builder: (context) {
@@ -330,9 +328,7 @@ class CreateRepoDialog extends StatelessWidget {
                   summary.value,
                   public.value,
                 )
-                .then((value) {
-              dismiss(context);
-            }).whenComplete(() => dismiss(context));
+                .whenComplete(() => dismiss(context));
           },
           child: Text(S.current.create),
         ),

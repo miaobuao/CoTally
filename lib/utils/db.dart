@@ -140,7 +140,7 @@ class Workspaces {
     return space;
   }
 
-  Future<BookModel?> createBook(
+  Future<EncryptedBookModel?> createBook(
     String workspaceId,
     String name,
     String summary,
@@ -159,7 +159,7 @@ class Workspaces {
 
   Future<bool> removeBook(
     String workspaceId,
-    BookModel book,
+    EncryptedBookModel book,
   ) async {
     final api = await getApi(workspaceId);
     return api == null
@@ -170,7 +170,7 @@ class Workspaces {
           );
   }
 
-  Future<List<BookModel>> listRepos(String id) async {
+  Future<List<EncryptedBookModel>> listRepos(String id) async {
     final api = await getApi(id);
     return api == null
         ? []
@@ -308,21 +308,21 @@ class FS {
     return join(config.basePath, org.toString());
   }
 
-  String getBookPath(Org org, BookModel book) {
+  String getBookPath(Org org, EncryptedBookModel book) {
     return join(getOrgPath(org), book.namespace, book.name);
   }
 
-  Directory getBookDir(Org org, BookModel book) {
+  Directory getBookDir(Org org, EncryptedBookModel book) {
     final path = getBookPath(org, book);
     return Directory(path);
   }
 
-  File getBookSummaryFile(Org org, BookModel book) {
+  File getBookSummaryFile(Org org, EncryptedBookModel book) {
     final dir = getBookPath(org, book);
     return File(join(dir, "summary"));
   }
 
-  String getBookSummary(Org org, BookModel book) {
+  String getBookSummary(Org org, EncryptedBookModel book) {
     final file = getBookSummaryFile(org, book);
     if (file.existsSync()) {
       final summary = file.readAsStringSync();
@@ -331,7 +331,8 @@ class FS {
     return '';
   }
 
-  Future<bool> removeLocalBook(String workspaceId, BookModel book) async {
+  Future<bool> removeLocalBook(
+      String workspaceId, EncryptedBookModel book) async {
     final workspace = await db.workspaces.open(workspaceId);
     final dir = getBookDir(workspace!.org, book);
     try {
@@ -346,7 +347,8 @@ class FS {
     return true;
   }
 
-  Future<bool> removeRemoteBook(String workspaceId, BookModel book) async {
+  Future<bool> removeRemoteBook(
+      String workspaceId, EncryptedBookModel book) async {
     return db.workspaces.removeBook(workspaceId, book).then((value) async =>
         value ? await removeLocalBook(workspaceId, book) : value);
   }
