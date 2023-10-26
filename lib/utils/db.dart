@@ -3,6 +3,7 @@ import 'dart:convert' as convert;
 import 'dart:io';
 import 'package:cotally/stores/stores.dart';
 import 'package:cotally/utils/api/base_api.dart';
+import 'package:cotally/utils/config.dart';
 import 'package:cotally/utils/constants.dart';
 import 'package:cotally/utils/models/config.dart';
 import 'package:cotally/utils/models/user.dart';
@@ -17,6 +18,7 @@ import './api/api.dart';
 const uuid = Uuid();
 typedef StringMapBox = CollectionBox<Map<String, dynamic>>;
 final store = Store();
+final db = DB();
 
 class DB {
   DB._();
@@ -24,12 +26,10 @@ class DB {
   factory DB() => instance;
 
   String _pwd = "";
-  late String basePath;
-  late Storage storage = Storage.bind(this);
-  late final remoteRepo = RemoteRepo.bind(this);
-  late final users = Users.bind(this);
-  late final workspaces = Workspaces.bind(this);
-  late final fs = FS.bind(this);
+  late final remoteRepo = RemoteRepo();
+  late final users = Users();
+  late final workspaces = Workspaces();
+  late final fs = FS();
 
   String get pwd {
     return _pwd;
@@ -57,12 +57,8 @@ class DB {
     await workspaces.box.clear();
   }
 
-  set collection(BoxCollection collection) {
-    storage.collection = collection;
-  }
-
   File get pubKeyFile {
-    return File(join(basePath, "key.pub"));
+    return File(join(config.basePath, "key.pub"));
   }
 
   Future registerPassword(String password) async {
@@ -92,10 +88,8 @@ class DB {
 }
 
 class Users {
-  final DB db;
-  Users.bind(this.db);
   JsonBox get box {
-    return db.storage.users;
+    return JsonBox('users');
   }
 
   Future<UserModel?> get(String id) async {
@@ -109,10 +103,8 @@ class Users {
 }
 
 class Workspaces {
-  final DB db;
-  Workspaces.bind(this.db);
   JsonBox get box {
-    return db.storage.workspaces;
+    return JsonBox('workspaces');
   }
 
   Future<WorkspaceModel> create(String id, Org org) async {
@@ -203,12 +195,8 @@ class Workspaces {
 }
 
 class RemoteRepo {
-  late final DB db;
-
-  RemoteRepo.bind(this.db);
-
   JsonBox get box {
-    return db.storage.tokens;
+    return JsonBox('tokens');
   }
 
   clear() {
@@ -218,7 +206,7 @@ class RemoteRepo {
   }
 
   File get lastOpenedIdFile {
-    final path = join(db.basePath, "lastOpenedRepo.id");
+    final path = join(config.basePath, "lastOpenedRepo.id");
     return File(path);
   }
 
@@ -271,24 +259,12 @@ class RemoteRepo {
 
 typedef Json = Map<String, dynamic>;
 
-class Storage {
-  final DB db;
-  late final BoxCollection collection;
-  Storage.bind(this.db);
-
-  late final users = JsonBox.bind(this, "users");
-  late final workspaces = JsonBox.bind(this, "workspaces");
-  late final books = JsonBox.bind(this, 'books');
-  late final tokens = JsonBox.bind(this, "tokens");
-}
-
 class JsonBox {
   final String name;
-  final Storage storage;
-  JsonBox.bind(this.storage, this.name);
+  JsonBox(this.name);
 
   Future<CollectionBox<String>> get box {
-    return storage.collection.openBox<String>(name);
+    return config.collection.openBox<String>(name);
   }
 
   Future save(String key, Json json) async {
@@ -315,11 +291,8 @@ class JsonBox {
 }
 
 class FS {
-  late final DB db;
-  FS.bind(this.db);
-
   String getOrgPath(Org org) {
-    return join(db.basePath, org.toString());
+    return join(config.basePath, org.toString());
   }
 
   String getBookPath(Org org, BookModel book) {
@@ -329,5 +302,10 @@ class FS {
   Directory getBookDir(Org org, BookModel book) {
     final path = getBookPath(org, book);
     return Directory(path);
+  }
+
+  File getBookSummaryFile(Org org, BookModel book) {
+    final dir = getBookPath(org, book);
+    return File(join(dir, "summary"));
   }
 }

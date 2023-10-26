@@ -2,6 +2,7 @@ import 'package:cotally/style/colors.dart';
 
 import 'package:cotally/generated/l10n.dart';
 import 'package:cotally/pages/workspace.dart';
+import 'package:cotally/utils/config.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive/hive.dart';
 import 'package:flutter/material.dart';
@@ -12,14 +13,12 @@ import 'package:path_provider/path_provider.dart';
 import 'component/toast.dart';
 import 'pages/access_token.dart';
 import 'pages/auth.dart';
-import 'utils/db.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final basePath = await getApplicationDocumentsDirectory();
-  final db = DB();
-  db.basePath = basePath.path;
-  db.collection = await BoxCollection.open(
+  config.basePath = basePath.path;
+  config.collection = await BoxCollection.open(
     "CoTally",
     {
       "users",
