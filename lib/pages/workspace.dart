@@ -4,6 +4,7 @@ import 'package:cotally/component/future.dart';
 import 'package:cotally/component/header.dart';
 import 'package:cotally/component/icons.dart';
 import 'package:cotally/component/input.dart';
+import 'package:cotally/component/toast.dart';
 import 'package:cotally/generated/l10n.dart';
 import 'package:cotally/stores/stores.dart';
 import 'package:cotally/style/colors.dart';
@@ -103,24 +104,19 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
             Widget child;
             final org = workspace!.org;
             final book = books[index];
-            if (db.fs.getBookDir(org, book).existsSync()) {
+            bool cached = db.fs.getBookDir(org, book).existsSync();
+            if (cached) {
               final summary = db.fs.getBookSummary(org, book);
               child = ListTile(
                 title: Text("${book.namespace}/${book.name}"),
                 subtitle: summary.isEmpty ? null : Text(summary),
-                // onTap: () {
-                //   print("taptap");
-                // },
               );
             } else {
               child = GestureDetector(
-                  onTap: () {
-                    print("taptap");
-                  },
                   child: ListTile(
-                    enabled: false,
-                    title: Text("${book.namespace}/${book.name}"),
-                  ));
+                enabled: false,
+                title: Text("${book.namespace}/${book.name}"),
+              ));
             }
             return Dismissible(
               background: Container(
@@ -132,14 +128,15 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
                 books.remove(book);
               },
               confirmDismiss: (DismissDirection direction) async {
-                return await showRemoveAlertDialog(context);
+                return await showRemoveAlertDialog(context, book, cached);
               },
             );
           },
         ));
   }
 
-  Future<bool> showRemoveAlertDialog(BuildContext context) async {
+  Future<bool> showRemoveAlertDialog(
+      BuildContext context, BookModel book, bool cached) async {
     return await showDialog(
         context: context,
         builder: (context) {
@@ -161,26 +158,45 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
               child: Text(S.current.cancel));
           return AlertDialog(
             title: Text(S.current.confirmDeletion),
-            actions: [
-              removeLocal,
-              removeBoth,
-              cancelButton,
-            ],
+            actions: cached
+                ? [
+                    removeLocal,
+                    removeBoth,
+                    cancelButton,
+                  ]
+                : [
+                    removeBoth,
+                    cancelButton,
+                  ],
           );
-        }).then((selected) {
-      if (selected == Location.none) {
-        return Future.value(false);
-      }
+        }).then((selected) async {
+      if (selected == Location.none) return selected;
       final String msg = selected == Location.both
           ? S.current.removeCompletely
           : S.current.removeLocal;
-      return ReconfirmDialog(
+      return await ReconfirmDialog(
         title: Text(S.current.reconfirm),
         content: Text(
           msg,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-      ).show(context);
+      ).show(context).then((value) => value ? selected : Location.none);
+    }).then((value) async {
+      if (value == Location.none) {
+        return false;
+      } else if (value == Location.local &&
+          await db.fs.removeLocalBook(workspaceId, book)) {
+        toast.add(S.current.done, type: ToastType.success);
+        return true;
+      } else if (value == Location.both &&
+          await db.fs.removeRemoteBook(workspaceId, book)) {
+        toast.add(S.current.done, type: ToastType.success);
+        return true;
+      } else if (value == Location.remote) {
+        throw Exception("`Location` can not be `remote` while deleting");
+      }
+      toast.add(S.current.failed, type: ToastType.error);
+      return false;
     });
   }
 }

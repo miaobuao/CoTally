@@ -59,6 +59,11 @@ abstract class BaseRepoApi {
     required BookModel bookModel,
     required String filePath,
   });
+
+  Future<bool> deleteRepo({
+    required String namespace,
+    required String path,
+  });
 }
 
 enum RepoPermission {

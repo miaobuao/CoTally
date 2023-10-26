@@ -121,9 +121,9 @@ class Workspaces {
     return box.save(id, workspace.toJson());
   }
 
-  Future<WorkspaceModel?> open(String id) async {
+  Future<WorkspaceModel?> open(String id, {bool save = false}) async {
     final json = await box.get(id.toString());
-    if (db.lastOpenedId != id) {
+    if (save && db.lastOpenedId != id) {
       db.lastOpenedId = id;
     }
     return json == null ? null : WorkspaceModel.fromJson(json);
@@ -154,6 +154,19 @@ class Workspaces {
             description: db.encrypt(DESCRIPTION),
             summary: db.encrypt(summary),
             public: public,
+          );
+  }
+
+  Future<bool> removeBook(
+    String workspaceId,
+    BookModel book,
+  ) async {
+    final api = await getApi(workspaceId);
+    return api == null
+        ? false
+        : await api.deleteRepo(
+            namespace: book.namespace,
+            path: book.name,
           );
   }
 
@@ -316,5 +329,25 @@ class FS {
       return db.decrypt(summary);
     }
     return '';
+  }
+
+  Future<bool> removeLocalBook(String workspaceId, BookModel book) async {
+    final workspace = await db.workspaces.open(workspaceId);
+    final dir = getBookDir(workspace!.org, book);
+    try {
+      if (dir.existsSync()) {
+        dir.deleteSync(recursive: true);
+      }
+    } on Exception catch (_) {
+      return false;
+    } on Error catch (_) {
+      return false;
+    }
+    return true;
+  }
+
+  Future<bool> removeRemoteBook(String workspaceId, BookModel book) async {
+    return db.workspaces.removeBook(workspaceId, book).then((value) async =>
+        value ? await removeLocalBook(workspaceId, book) : value);
   }
 }

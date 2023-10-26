@@ -44,6 +44,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "enterPwd": MessageLookupByLibrary.simpleMessage("Enter password"),
         "enterPwdAgain":
             MessageLookupByLibrary.simpleMessage("Enter password again"),
+        "failed": MessageLookupByLibrary.simpleMessage("Operation Failed"),
         "goOn": MessageLookupByLibrary.simpleMessage("Go on"),
         "loading": MessageLookupByLibrary.simpleMessage("loading"),
         "name": MessageLookupByLibrary.simpleMessage("Name"),

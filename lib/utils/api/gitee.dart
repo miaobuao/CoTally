@@ -37,7 +37,7 @@ class GiteeApi implements BaseRepoApi {
         "access_token": accessToken,
       },
     );
-    if (response.statusCode == 200) {
+    if (isSuccessCode(response.statusCode)) {
       return UserInfoModel.fromJson(response.data);
     }
     return null;
@@ -48,7 +48,7 @@ class GiteeApi implements BaseRepoApi {
   Future<UserInfoModel?> getUser({required String username}) async {
     final url = "$base/users/$username";
     final response = await dio.get(url);
-    if (response.statusCode == 200) {
+    if (isSuccessCode(response.statusCode)) {
       return UserInfoModel.fromJson(response.data);
     }
     return null;
@@ -89,7 +89,7 @@ class GiteeApi implements BaseRepoApi {
       "visibility": 'all',
     });
 
-    if (response.statusCode == 200) {
+    if (isSuccessCode(response.statusCode)) {
       return List.from(response.data.map(parseBook));
     }
     return null;
@@ -146,8 +146,8 @@ class GiteeApi implements BaseRepoApi {
     if (description != null) {
       data['description'] = description;
     }
-    return await dio.patch(url, data: data).then(
-        (value) => value.statusCode == 200 ? parseBook(value.data) : null);
+    return await dio.patch(url, data: data).then((value) =>
+        isSuccessCode(value.statusCode) ? parseBook(value.data) : null);
   }
 
   @override
@@ -172,6 +172,18 @@ class GiteeApi implements BaseRepoApi {
     required BookModel bookModel,
     required String filePath,
   }) async {}
+
+  @override
+  // https://gitee.com/api/v5/swagger#/deleteV5ReposOwnerRepo
+  Future<bool> deleteRepo({
+    required String namespace,
+    required String path,
+  }) async {
+    final url = "$base/repos/$namespace/$path";
+    return await dio.delete(url, data: {
+      "access_token": accessToken,
+    }).then((value) => isSuccessCode(value.statusCode));
+  }
 }
 
 BookModel parseBook(dynamic data) {
@@ -183,4 +195,8 @@ BookModel parseBook(dynamic data) {
     url: data['url'],
     path: data['path'],
   );
+}
+
+bool isSuccessCode(int? code) {
+  return code.toString().startsWith("20");
 }

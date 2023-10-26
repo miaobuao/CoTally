@@ -31,14 +31,14 @@ class ReconfirmDialog extends StatelessWidget {
       actions: [
         TextButton(
             onPressed: () {
-              Navigator.pop(context, true);
-            },
-            child: Text(S.current.goOn)),
-        TextButton(
-            onPressed: () {
               Navigator.pop(context, false);
             },
             child: Text(S.current.abort)),
+        TextButton(
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
+            child: Text(S.current.goOn)),
       ],
     );
   }

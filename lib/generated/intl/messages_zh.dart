@@ -40,6 +40,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "encryptionSettings": MessageLookupByLibrary.simpleMessage("加密设置"),
         "enterPwd": MessageLookupByLibrary.simpleMessage("请输入密码"),
         "enterPwdAgain": MessageLookupByLibrary.simpleMessage("再输入一次密码"),
+        "failed": MessageLookupByLibrary.simpleMessage("操作失败"),
         "goOn": MessageLookupByLibrary.simpleMessage("继续"),
         "loading": MessageLookupByLibrary.simpleMessage("加载中"),
         "name": MessageLookupByLibrary.simpleMessage("名称"),
