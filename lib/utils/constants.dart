@@ -6,6 +6,13 @@ enum Org {
   github,
 }
 
+enum Location {
+  local,
+  remote,
+  both,
+  none,
+}
+
 // ignore: constant_identifier_names
 const SAFE_SALT =
     """b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn

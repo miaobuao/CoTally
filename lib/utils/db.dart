@@ -308,4 +308,13 @@ class FS {
     final dir = getBookPath(org, book);
     return File(join(dir, "summary"));
   }
+
+  String getBookSummary(Org org, BookModel book) {
+    final file = getBookSummaryFile(org, book);
+    if (file.existsSync()) {
+      final summary = file.readAsStringSync();
+      return db.decrypt(summary);
+    }
+    return '';
+  }
 }

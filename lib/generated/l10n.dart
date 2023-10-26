@@ -160,6 +160,26 @@ class S {
     );
   }
 
+  /// `Go on`
+  String get goOn {
+    return Intl.message(
+      'Go on',
+      name: 'goOn',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Abort`
+  String get abort {
+    return Intl.message(
+      'Abort',
+      name: 'abort',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Cancel`
   String get cancel {
     return Intl.message(
@@ -245,6 +265,96 @@ class S {
     return Intl.message(
       'Create',
       name: 'create',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Completely Delete`
+  String get removeCompletely {
+    return Intl.message(
+      'Completely Delete',
+      name: 'removeCompletely',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remove Local`
+  String get removeLocal {
+    return Intl.message(
+      'Remove Local',
+      name: 'removeLocal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Name`
+  String get name {
+    return Intl.message(
+      'Name',
+      name: 'name',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Summary`
+  String get summary {
+    return Intl.message(
+      'Summary',
+      name: 'summary',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `detail`
+  String get detail {
+    return Intl.message(
+      'detail',
+      name: 'detail',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Public`
+  String get public {
+    return Intl.message(
+      'Public',
+      name: 'public',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Confirm Deletion?`
+  String get confirmDeletion {
+    return Intl.message(
+      'Confirm Deletion?',
+      name: 'confirmDeletion',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reconfirm`
+  String get reconfirm {
+    return Intl.message(
+      'Reconfirm',
+      name: 'reconfirm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `loading`
+  String get loading {
+    return Intl.message(
+      'loading',
+      name: 'loading',
       desc: '',
       args: [],
     );

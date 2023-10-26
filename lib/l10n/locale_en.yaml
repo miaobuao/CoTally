@@ -9,6 +9,8 @@ done: Done
 verify: Verify
 submit: Submit
 confirm: Confirm
+goOn: Go on
+abort: Abort
 cancel: Cancel
 reset: Reset
 user: User
@@ -18,3 +20,12 @@ wrongAccessToken: Wrong Access Token
 empty: Empty
 createBook: Create Book
 create: Create
+removeCompletely: Completely Delete
+removeLocal: Remove Local
+name: Name
+summary: Summary
+detail: detail
+public: Public
+confirmDeletion: Confirm Deletion?
+reconfirm: Reconfirm
+loading: loading

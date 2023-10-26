@@ -9,6 +9,8 @@ done: 完成
 verify: 验证
 submit: 提交
 confirm: 确认
+goOn: 继续
+abort: 终止
 cancel: 取消
 reset: 重置
 user: 用户
@@ -18,3 +20,12 @@ wrongAccessToken: 令牌错误
 empty: 啥都没有耶
 createBook: 创建账本
 create: 创建
+removeAll: 彻底删除
+removeLocal: 只删除本地
+name: 名称
+summary: 简介
+detail: 详细
+public: 公开
+confirmDeletion: 确定要删除吗?
+reconfirm: 再次确认
+loading: 加载中

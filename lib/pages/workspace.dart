@@ -24,7 +24,7 @@ class WorkspacePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final workspaceId = Get.arguments as String;
+    final String workspaceId = Get.arguments;
 
     return Scaffold(
       appBar: AppBar(
@@ -61,13 +61,13 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
   WorkspaceModel? workspace;
   bool loading = false;
   List<BookModel> books = [];
-  late final workspaceId;
+  late final String workspaceId;
 
   @override
   void initState() {
     super.initState();
     loading = true;
-    workspaceId = Get.arguments as String;
+    workspaceId = Get.arguments;
     db.workspaces.open(workspaceId).then((value) {
       if (value == null) {
         return;
@@ -100,21 +100,27 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
         child: ListView.builder(
           itemCount: books.length,
           itemBuilder: (BuildContext context, int index) {
-            final book = books[index];
             Widget child;
-            if (db.fs.getBookDir(workspace!.org, books[index]).existsSync()) {
+            final org = workspace!.org;
+            final book = books[index];
+            if (db.fs.getBookDir(org, book).existsSync()) {
+              final summary = db.fs.getBookSummary(org, book);
               child = ListTile(
                 title: Text("${book.namespace}/${book.name}"),
-                // subtitle: Text(book.summary ?? ''),
-                onTap: () {
-                  print("taptap");
-                },
+                subtitle: summary.isEmpty ? null : Text(summary),
+                // onTap: () {
+                //   print("taptap");
+                // },
               );
             } else {
-              child = ListTile(
-                enabled: false,
-                title: Text("${book.namespace}/${book.name}"),
-              );
+              child = GestureDetector(
+                  onTap: () {
+                    print("taptap");
+                  },
+                  child: ListTile(
+                    enabled: false,
+                    title: Text("${book.namespace}/${book.name}"),
+                  ));
             }
             return Dismissible(
               background: Container(
@@ -125,9 +131,57 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
               onDismissed: (DismissDirection direction) {
                 books.remove(book);
               },
+              confirmDismiss: (DismissDirection direction) async {
+                return await showRemoveAlertDialog(context);
+              },
             );
           },
         ));
+  }
+
+  Future<bool> showRemoveAlertDialog(BuildContext context) async {
+    return await showDialog(
+        context: context,
+        builder: (context) {
+          var removeBoth = TextButton(
+              onPressed: () {
+                Navigator.pop(context, Location.both);
+              },
+              child: Text(S.current.removeCompletely));
+          var removeLocal = TextButton(
+              onPressed: () {
+                Navigator.pop(context, Location.local);
+              },
+              child: Text(S.current.removeLocal));
+
+          var cancelButton = TextButton(
+              onPressed: () {
+                Navigator.pop(context, Location.none);
+              },
+              child: Text(S.current.cancel));
+          return AlertDialog(
+            title: Text(S.current.confirmDeletion),
+            actions: [
+              removeLocal,
+              removeBoth,
+              cancelButton,
+            ],
+          );
+        }).then((selected) {
+      if (selected == Location.none) {
+        return Future.value(false);
+      }
+      final String msg = selected == Location.both
+          ? S.current.removeCompletely
+          : S.current.removeLocal;
+      return ReconfirmDialog(
+        title: Text(S.current.reconfirm),
+        content: Text(
+          msg,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ).show(context);
+    });
   }
 }
 
@@ -220,18 +274,18 @@ class CreateRepoDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "aaa",
-              style: TextStyle(fontSize: 24),
+              S.current.createBook,
+              style: const TextStyle(fontSize: 24),
             ),
             space,
             Input(
-              hint: "name",
+              hint: S.current.name,
               value: name,
               autofocus: true,
             ),
             space,
             Input(
-              hint: 'summary',
+              hint: S.current.summary,
               value: summary,
             ),
             space,
@@ -247,7 +301,7 @@ class CreateRepoDialog extends StatelessWidget {
           onPressed: () {
             dismiss(context);
           },
-          child: Text("cancel"),
+          child: Text(S.current.cancel),
         ),
         TextButton(
           onPressed: () {
@@ -264,7 +318,7 @@ class CreateRepoDialog extends StatelessWidget {
               dismiss(context);
             }).whenComplete(() => dismiss(context));
           },
-          child: Text("create"),
+          child: Text(S.current.create),
         ),
       ],
     );

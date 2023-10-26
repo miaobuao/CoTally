@@ -24,6 +24,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
+        "abort": MessageLookupByLibrary.simpleMessage("Abort"),
         "accessToken": MessageLookupByLibrary.simpleMessage("Access Token"),
         "appName": MessageLookupByLibrary.simpleMessage("CoTally"),
         "authenticationFailed":
@@ -31,8 +32,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "cancel": MessageLookupByLibrary.simpleMessage("Cancel"),
         "cannotBeEmpty": m0,
         "confirm": MessageLookupByLibrary.simpleMessage("Confirm"),
+        "confirmDeletion":
+            MessageLookupByLibrary.simpleMessage("Confirm Deletion?"),
         "create": MessageLookupByLibrary.simpleMessage("Create"),
         "createBook": MessageLookupByLibrary.simpleMessage("Create Book"),
+        "detail": MessageLookupByLibrary.simpleMessage("detail"),
         "done": MessageLookupByLibrary.simpleMessage("Done"),
         "empty": MessageLookupByLibrary.simpleMessage("Empty"),
         "encryptionSettings":
@@ -40,9 +44,18 @@ class MessageLookup extends MessageLookupByLibrary {
         "enterPwd": MessageLookupByLibrary.simpleMessage("Enter password"),
         "enterPwdAgain":
             MessageLookupByLibrary.simpleMessage("Enter password again"),
+        "goOn": MessageLookupByLibrary.simpleMessage("Go on"),
+        "loading": MessageLookupByLibrary.simpleMessage("loading"),
+        "name": MessageLookupByLibrary.simpleMessage("Name"),
         "password": MessageLookupByLibrary.simpleMessage("Password"),
+        "public": MessageLookupByLibrary.simpleMessage("Public"),
+        "reconfirm": MessageLookupByLibrary.simpleMessage("Reconfirm"),
+        "removeCompletely":
+            MessageLookupByLibrary.simpleMessage("Completely Delete"),
+        "removeLocal": MessageLookupByLibrary.simpleMessage("Remove Local"),
         "reset": MessageLookupByLibrary.simpleMessage("Reset"),
         "submit": MessageLookupByLibrary.simpleMessage("Submit"),
+        "summary": MessageLookupByLibrary.simpleMessage("Summary"),
         "twoPwdDifferent": MessageLookupByLibrary.simpleMessage(
             "The two passwords entered are different"),
         "user": MessageLookupByLibrary.simpleMessage("User"),
