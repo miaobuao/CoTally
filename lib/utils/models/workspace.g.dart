@@ -11,17 +11,15 @@ WorkspaceModel _$WorkspaceModelFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       org: $enumDecode(_$OrgEnumMap, json['org']),
       books: (json['books'] as List<dynamic>)
-          .map((e) => EncryptedBookModel.fromJson(e as Map<String, dynamic>))
+          .map((e) => BookModel.fromJson(e as Map<String, dynamic>))
           .toList(),
-      lastOpenedBookId: json['lastOpenedBookId'] as String?,
     );
 
 Map<String, dynamic> _$WorkspaceModelToJson(WorkspaceModel instance) =>
     <String, dynamic>{
-      'org': _$OrgEnumMap[instance.org]!,
       'id': instance.id,
+      'org': _$OrgEnumMap[instance.org]!,
       'books': instance.books.map((e) => e.toJson()).toList(),
-      'lastOpenedBookId': instance.lastOpenedBookId,
     };
 
 const _$OrgEnumMap = {
@@ -30,43 +28,13 @@ const _$OrgEnumMap = {
 };
 
 BookModel _$BookModelFromJson(Map<String, dynamic> json) => BookModel(
-      namespace: json['namespace'] as String,
-      name: json['name'] as String,
-      path: json['path'] as String,
-      public: json['public'] as bool,
-      description: json['description'] as String?,
-      url: json['url'] as String,
-      summary: json['summary'] as String?,
+      data: json['data'] as Map<String, dynamic>,
+      workspaceId: json['workspaceId'] as String,
+      org: $enumDecode(_$OrgEnumMap, json['org']),
     );
 
 Map<String, dynamic> _$BookModelToJson(BookModel instance) => <String, dynamic>{
-      'name': instance.name,
-      'namespace': instance.namespace,
-      'public': instance.public,
-      'description': instance.description,
-      'url': instance.url,
-      'path': instance.path,
-      'summary': instance.summary,
-    };
-
-EncryptedBookModel _$EncryptedBookModelFromJson(Map<String, dynamic> json) =>
-    EncryptedBookModel(
-      namespace: json['namespace'] as String,
-      name: json['name'] as String,
-      path: json['path'] as String,
-      public: json['public'] as bool,
-      description: json['description'] as String?,
-      url: json['url'] as String,
-      summary: json['summary'] as String?,
-    );
-
-Map<String, dynamic> _$EncryptedBookModelToJson(EncryptedBookModel instance) =>
-    <String, dynamic>{
-      'name': instance.name,
-      'namespace': instance.namespace,
-      'public': instance.public,
-      'description': instance.description,
-      'url': instance.url,
-      'path': instance.path,
-      'summary': instance.summary,
+      'data': instance.data,
+      'org': _$OrgEnumMap[instance.org]!,
+      'workspaceId': instance.workspaceId,
     };

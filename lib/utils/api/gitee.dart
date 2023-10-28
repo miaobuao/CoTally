@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:cotally/utils/constants.dart';
 import 'package:cotally/utils/models/user.dart';
 import 'package:cotally/utils/models/workspace.dart';
 import 'package:dio/dio.dart';
@@ -13,6 +14,7 @@ final dio = Dio();
 class GiteeApi implements BaseRepoApi {
   @override
   String? accessToken;
+  final org = Org.gitee;
   GiteeApi({this.accessToken});
 
   static const String base = "https://gitee.com/api/v5";
@@ -38,7 +40,7 @@ class GiteeApi implements BaseRepoApi {
       },
     );
     if (isSuccessCode(response.statusCode)) {
-      return UserInfoModel.fromJson(response.data);
+      return UserInfoModel(data: response.data);
     }
     return null;
   }
@@ -77,7 +79,8 @@ class GiteeApi implements BaseRepoApi {
 
   // https://gitee.com/api/v5/swagger#/getV5UserRepos
   @override
-  Future<List<EncryptedBookModel>?> listRepos({
+  Future<List<BookModel>?> listRepos({
+    required String workspaceId,
     int page = 1,
     int perPage = 100,
   }) async {
@@ -88,20 +91,24 @@ class GiteeApi implements BaseRepoApi {
       "per_page": perPage,
       "visibility": 'all',
     });
-
     if (isSuccessCode(response.statusCode)) {
-      return List.from(response.data.map(parseBook));
+      return List.from(response.data.map((data) => parseBook(
+            data: data,
+            org: org,
+            workspaceId: workspaceId,
+          )));
     }
     return null;
   }
 
   // https://gitee.com/api/v5/swagger#/postV5UserRepos
   @override
-  Future<EncryptedBookModel?> createRepo({
+  Future<BookModel?> createRepo({
     required String name,
     required String description,
     required String summary,
     required bool public,
+    required String workspaceId,
   }) async {
     const url = "$base/user/repos";
     return await dio.post(url, data: {
@@ -114,7 +121,11 @@ class GiteeApi implements BaseRepoApi {
       if (!response.statusCode.toString().startsWith("20") || data == null) {
         return null;
       }
-      final book = parseBook(data);
+      final book = parseBook(
+        data: data,
+        org: org,
+        workspaceId: workspaceId,
+      );
       if (await createFile(
             namespace: book.namespace,
             path: book.path,
@@ -123,7 +134,8 @@ class GiteeApi implements BaseRepoApi {
             message: DateTime.now().toString(),
           ) &&
           public) {
-        return await updateRepoSettings(book: book, private: false);
+        return await updateRepoSettings(
+            book: book, private: false, workspaceId: workspaceId);
       }
       return book;
     });
@@ -131,10 +143,11 @@ class GiteeApi implements BaseRepoApi {
 
   // https://gitee.com/api/v5/swagger#/patchV5ReposOwnerRepo
   @override
-  Future<EncryptedBookModel?> updateRepoSettings({
-    required EncryptedBookModel book,
+  Future<BookModel?> updateRepoSettings({
+    required BookModel book,
     bool? private,
     String? description,
+    required String workspaceId,
   }) async {
     final url = "https://gitee.com/api/v5/repos/${book.namespace}/${book.path}";
     final Map<String, dynamic> data = {
@@ -147,8 +160,15 @@ class GiteeApi implements BaseRepoApi {
     if (description != null) {
       data['description'] = description;
     }
-    return await dio.patch(url, data: data).then((value) =>
-        isSuccessCode(value.statusCode) ? parseBook(value.data) : null);
+    return await dio
+        .patch(url, data: data)
+        .then((value) => isSuccessCode(value.statusCode)
+            ? parseBook(
+                data: value.data,
+                org: org,
+                workspaceId: workspaceId,
+              )
+            : null);
   }
 
   @override
@@ -179,16 +199,28 @@ class GiteeApi implements BaseRepoApi {
       "access_token": accessToken,
     }).then((value) => isSuccessCode(value.statusCode));
   }
+
+  @override
+  String cloneUrl(String namespace, String path) {
+    return "https://oauth2:$accessToken@gitee.com/$namespace/$path.git";
+  }
 }
 
-EncryptedBookModel parseBook(dynamic data) {
-  return EncryptedBookModel(
-    namespace: data['namespace']['path'],
-    name: data['name'],
-    public: data['public'],
-    description: data['description'] ?? '',
-    url: data['url'],
-    path: data['path'],
+BookModel parseBook({
+  required dynamic data,
+  required Org org,
+  required String workspaceId,
+}) {
+  return BookModel(
+    // namespace: data['namespace']['path'],
+    // name: data['name'],
+    // public: data['public'],
+    // description: data['description'] ?? '',
+    // url: data['url'],
+    // path: data['path'],
+    workspaceId: workspaceId,
+    org: org,
+    data: data,
   );
 }
 

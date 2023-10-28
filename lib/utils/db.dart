@@ -5,9 +5,11 @@ import 'package:cotally/stores/stores.dart';
 import 'package:cotally/utils/api/base_api.dart';
 import 'package:cotally/utils/config.dart';
 import 'package:cotally/utils/constants.dart';
+import 'package:cotally/utils/git.dart';
 import 'package:cotally/utils/models/config.dart';
 import 'package:cotally/utils/models/user.dart';
 import 'package:cotally/utils/models/workspace.dart';
+import 'package:cotally/utils/types.dart';
 import 'package:hive/hive.dart';
 import 'package:path/path.dart';
 import 'package:bcrypt/bcrypt.dart';
@@ -48,7 +50,7 @@ class DB {
     return decryptByPwd(pwd, encrypted);
   }
 
-  clear({bool? removePwd}) async {
+  Future clear({bool? removePwd}) async {
     if ((removePwd ?? false) && pubKeyFile.existsSync()) {
       pubKeyFile.deleteSync();
     }
@@ -140,7 +142,7 @@ class Workspaces {
     return space;
   }
 
-  Future<EncryptedBookModel?> createBook(
+  Future<BookModel?> createBook(
     String workspaceId,
     String name,
     String summary,
@@ -150,6 +152,7 @@ class Workspaces {
     final book = api == null
         ? null
         : await api.createRepo(
+            workspaceId: workspaceId,
             name: name,
             description: db.encrypt(DESCRIPTION),
             summary: db.encrypt(summary),
@@ -164,7 +167,7 @@ class Workspaces {
 
   Future<bool> removeBook(
     String workspaceId,
-    EncryptedBookModel book,
+    BookModel book,
   ) async {
     final api = await getApi(workspaceId);
     final workspace = await open(workspaceId);
@@ -181,18 +184,15 @@ class Workspaces {
           );
   }
 
-  Future<List<EncryptedBookModel>> listRepos(String id) async {
+  Future<List<BookModel>> listRepos(String id) async {
     final api = await getApi(id);
     return api == null
         ? []
-        : await api.listRepos().then((repos) {
+        : await api.listRepos(workspaceId: id).then((repos) {
             if (repos == null) return [];
             return List.from(repos.where((element) {
-              if (element.description == null) {
-                return false;
-              }
               try {
-                if (db.decrypt(element.description as String) == DESCRIPTION) {
+                if (db.decrypt(element.encryptedDescription) == DESCRIPTION) {
                   return true;
                 }
               } on DecyptError catch (_) {
@@ -281,8 +281,6 @@ class RemoteRepo {
   }
 }
 
-typedef Json = Map<String, dynamic>;
-
 class JsonBox {
   final String name;
   JsonBox(this.name);
@@ -315,26 +313,8 @@ class JsonBox {
 }
 
 class FS {
-  String getOrgPath(Org org) {
-    return join(config.basePath, org.toString());
-  }
-
-  String getBookPath(Org org, EncryptedBookModel book) {
-    return join(getOrgPath(org), book.namespace, book.name);
-  }
-
-  Directory getBookDir(Org org, EncryptedBookModel book) {
-    final path = getBookPath(org, book);
-    return Directory(path);
-  }
-
-  File getBookSummaryFile(Org org, EncryptedBookModel book) {
-    final dir = getBookPath(org, book);
-    return File(join(dir, "summary"));
-  }
-
-  String getBookSummary(Org org, EncryptedBookModel book) {
-    final file = getBookSummaryFile(org, book);
+  String getSummary(BookModel book) {
+    final file = book.summaryFile;
     if (file.existsSync()) {
       final summary = file.readAsStringSync();
       return db.decrypt(summary);
@@ -342,10 +322,8 @@ class FS {
     return '';
   }
 
-  Future<bool> removeLocalBook(
-      String workspaceId, EncryptedBookModel book) async {
-    final workspace = await db.workspaces.open(workspaceId);
-    final dir = getBookDir(workspace!.org, book);
+  Future<bool> removeLocal(BookModel book) async {
+    final dir = book.directory;
     try {
       if (dir.existsSync()) {
         dir.deleteSync(recursive: true);
@@ -358,9 +336,21 @@ class FS {
     return true;
   }
 
-  Future<bool> removeRemoteBook(
-      String workspaceId, EncryptedBookModel book) async {
-    return db.workspaces.removeBook(workspaceId, book).then((value) async =>
-        value ? await removeLocalBook(workspaceId, book) : value);
+  Future<bool> removeRemote(String workspaceId, BookModel book) async {
+    return db.workspaces
+        .removeBook(workspaceId, book)
+        .then((value) async => value ? await removeLocal(book) : value);
+  }
+
+  Future<bool> clone(BookModel book) async {
+    final api = await db.workspaces.getApi(book.workspaceId);
+    final url = api?.cloneUrl(book.namespace, book.name);
+    if (url == null) return false;
+    final dir = book.directory;
+    if (!dir.existsSync()) {
+      dir.createSync(recursive: true);
+    }
+    await Git.clone(url, dir.path);
+    return true;
   }
 }

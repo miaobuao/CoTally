@@ -3,6 +3,7 @@ import 'package:cotally/style/colors.dart';
 import 'package:cotally/generated/l10n.dart';
 import 'package:cotally/pages/workspace.dart';
 import 'package:cotally/utils/config.dart';
+import 'package:cotally/utils/db.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive/hive.dart';
 import 'package:flutter/material.dart';

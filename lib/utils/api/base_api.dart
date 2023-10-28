@@ -1,3 +1,4 @@
+import 'package:cotally/utils/constants.dart';
 import 'package:cotally/utils/models/workspace.dart';
 
 import '../models/user.dart';
@@ -30,20 +31,23 @@ abstract class BaseRepoApi {
     int? page,
     int? perPage,
   });
-  Future<List<EncryptedBookModel>?> listRepos({
+  Future<List<BookModel>?> listRepos({
+    required String workspaceId,
     int page = 1,
     int perPage = 100,
   });
 
-  Future<EncryptedBookModel?> createRepo({
+  Future<BookModel?> createRepo({
+    required String workspaceId,
     required String name,
     required String description,
     required String summary,
     required bool public,
   });
 
-  Future<EncryptedBookModel?> updateRepoSettings({
-    required EncryptedBookModel book,
+  Future<BookModel?> updateRepoSettings({
+    required String workspaceId,
+    required BookModel book,
     bool? private,
     String? description,
   });
@@ -60,6 +64,8 @@ abstract class BaseRepoApi {
     required String namespace,
     required String path,
   });
+
+  String cloneUrl(String namespace, String path);
 }
 
 enum RepoPermission {

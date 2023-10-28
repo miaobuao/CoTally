@@ -68,7 +68,7 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
   final db = DB();
   WorkspaceModel? workspace;
   bool loading = false;
-  List<EncryptedBookModel> books = [];
+  List<BookModel> books = [];
   late final String workspaceId;
 
   update() {
@@ -117,21 +117,24 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
           itemCount: books.length,
           itemBuilder: (BuildContext context, int index) {
             Widget child;
-            final org = workspace!.org;
             final book = books[index];
-            bool cached = db.fs.getBookDir(org, book).existsSync();
+            bool cached = book.directory.existsSync();
             if (cached) {
-              final summary = db.fs.getBookSummary(org, book);
+              final summary = db.fs.getSummary(book);
               child = ListTile(
                 title: Text("${book.namespace}/${book.name}"),
                 subtitle: summary.isEmpty ? null : Text(summary),
               );
             } else {
-              child = GestureDetector(
-                  child: ListTile(
-                enabled: false,
-                title: Text("${book.namespace}/${book.name}"),
-              ));
+              child = InkWell(
+                child: ListTile(
+                  enabled: false,
+                  title: Text("${book.namespace}/${book.name}"),
+                ),
+                onTap: () {
+                  // showDialog(context: context, builder: builder)
+                },
+              );
             }
             return Dismissible(
               background: Container(
@@ -151,7 +154,7 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
   }
 
   Future<bool> showRemoveAlertDialog(
-      BuildContext context, EncryptedBookModel book, bool cached) async {
+      BuildContext context, BookModel book, bool cached) async {
     return await showDialog(
         context: context,
         builder: (context) {
@@ -175,13 +178,13 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
             title: Text(S.current.confirmDeletion),
             actions: cached
                 ? [
+                    cancelButton,
                     removeLocal,
                     removeBoth,
-                    cancelButton,
                   ]
                 : [
-                    removeBoth,
                     cancelButton,
+                    removeBoth,
                   ],
           );
         }).then((selected) async {
@@ -198,14 +201,20 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
       ).show(context).then((value) => value ? selected : Location.none);
     }).then((value) async {
       bool flag = false;
-      if (value == Location.local) {
-        db.fs.removeLocalBook(workspaceId, book).then((value) {
+      if (value == Location.none) {
+        return false;
+      } else if (value == Location.local) {
+        db.fs.removeLocal(book).then((value) {
           toast.add(S.current.done, type: ToastType.success);
+        }).onError((error, stackTrace) {
+          toast.add(S.current.failed, type: ToastType.error);
         });
         flag = true;
       } else if (value == Location.both) {
-        db.fs.removeRemoteBook(workspaceId, book).then((value) {
+        db.fs.removeRemote(workspaceId, book).then((value) {
           toast.add(S.current.done, type: ToastType.success);
+        }).onError((error, stackTrace) {
+          toast.add(S.current.failed, type: ToastType.error);
         });
         flag = true;
       } else if (value == Location.remote) {

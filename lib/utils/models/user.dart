@@ -1,4 +1,5 @@
 import 'package:cotally/utils/constants.dart';
+import 'package:cotally/utils/types.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'user.g.dart';
@@ -17,18 +18,15 @@ class UserModel {
 
 @JsonSerializable(explicitToJson: true)
 class UserInfoModel {
-  final int id;
-  final String name;
-  final String login;
-  @JsonKey(name: "avatar_url")
-  final String avatarUrl;
+  final Json data;
+  String get name => data['name'];
+  String get login => data['login'];
+  String get avatarUrl => data['avatar_url'];
 
   UserInfoModel({
-    required this.avatarUrl,
-    required this.name,
-    required this.id,
-    required this.login,
+    required this.data,
   });
+
   factory UserInfoModel.fromJson(Map<String, dynamic> json) =>
       _$UserInfoModelFromJson(json);
   Map<String, dynamic> toJson() => _$UserInfoModelToJson(this);

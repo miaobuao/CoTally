@@ -25,16 +25,10 @@ const _$OrgEnumMap = {
 
 UserInfoModel _$UserInfoModelFromJson(Map<String, dynamic> json) =>
     UserInfoModel(
-      avatarUrl: json['avatar_url'] as String,
-      name: json['name'] as String,
-      id: json['id'] as int,
-      login: json['login'] as String,
+      data: json['data'] as Map<String, dynamic>,
     );
 
 Map<String, dynamic> _$UserInfoModelToJson(UserInfoModel instance) =>
     <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'login': instance.login,
-      'avatar_url': instance.avatarUrl,
+      'data': instance.data,
     };
