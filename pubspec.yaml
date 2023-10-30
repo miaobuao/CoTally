@@ -58,6 +58,7 @@ dependencies:
   skeletonizer: ^0.8.0
   event_bus: ^2.0.0
   libgit2dart: ^1.2.2
+  cryptography: ^2.7.0
 
 dev_dependencies:
   flutter_test:

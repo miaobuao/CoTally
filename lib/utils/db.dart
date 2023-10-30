@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert' as convert;
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:cotally/stores/stores.dart';
 import 'package:cotally/utils/api/base_api.dart';
 import 'package:cotally/utils/config.dart';
 import 'package:cotally/utils/constants.dart';
+import 'package:cotally/utils/erros.dart';
 import 'package:cotally/utils/git.dart';
 import 'package:cotally/utils/models/config.dart';
 import 'package:cotally/utils/models/user.dart';
@@ -27,27 +29,18 @@ class DB {
   static final DB instance = DB._();
   factory DB() => instance;
 
-  String _pwd = "";
+  late Uint8List derivationKey;
   late final remoteRepo = RemoteRepo();
   late final users = Users();
   late final workspaces = Workspaces();
   late final fs = FS();
 
-  String get pwd {
-    return _pwd;
-  }
-
-  set pwd(String value) {
-    if (_pwd == value) return;
-    _pwd = value;
-  }
-
   String encrypt(String plain) {
-    return encryptByPwd(pwd, plain);
+    return encryptedByDerivationKey(derivationKey, plain);
   }
 
   String decrypt(String encrypted) {
-    return decryptByPwd(pwd, encrypted);
+    return decryptedByDerivationKey(derivationKey, encrypted);
   }
 
   Future clear({bool? removePwd}) async {
@@ -64,17 +57,16 @@ class DB {
   }
 
   Future registerPassword(String password) async {
-    pwd = password;
-    final String hashed =
-        BCrypt.hashpw(password, BCrypt.gensalt(logRounds: 31));
-    await pubKeyFile.writeAsString(hashed);
+    final key = await kdf(password);
+    await pubKeyFile.writeAsBytes(key);
   }
 
-  bool checkPassword(String password) {
+  Future<bool> checkPassword(String password) async {
     if (!pubKeyFile.existsSync()) return false;
-    final hashed = pubKeyFile.readAsStringSync();
-    if (BCrypt.checkpw(password, hashed)) {
-      pwd = password;
+    final hashed = pubKeyFile.readAsBytesSync();
+    final key = await preparePwd(password);
+    if (hashed == key) {
+      derivationKey = key;
       return true;
     }
     return false;
@@ -142,20 +134,22 @@ class Workspaces {
     return space;
   }
 
-  Future<BookModel?> createBook(
-    String workspaceId,
-    String name,
-    String summary,
-    bool public,
-  ) async {
+  Future<BookModel?> createBook({
+    required String accessPwd,
+    required String workspaceId,
+    required String name,
+    required String summary,
+    required bool public,
+  }) async {
     final api = await getApi(workspaceId);
+    summary = await encryptByPwd(accessPwd, summary);
     final book = api == null
         ? null
         : await api.createRepo(
             workspaceId: workspaceId,
             name: name,
-            description: db.encrypt(DESCRIPTION),
-            summary: db.encrypt(summary),
+            description: DESCRIPTION_PREFIX,
+            summary: summary,
             public: public,
           );
     if (book == null) return null;
@@ -191,12 +185,8 @@ class Workspaces {
         : await api.listRepos(workspaceId: id).then((repos) {
             if (repos == null) return [];
             return List.from(repos.where((element) {
-              try {
-                if (db.decrypt(element.encryptedDescription) == DESCRIPTION) {
-                  return true;
-                }
-              } on DecyptError catch (_) {
-                return false;
+              if (element.description.startsWith(DESCRIPTION_PREFIX)) {
+                return true;
               }
               return false;
             }));

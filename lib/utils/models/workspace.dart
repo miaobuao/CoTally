@@ -40,7 +40,7 @@ class BookModel {
   String get namespace => data['namespace']['path'];
   String get name => data['name'];
   String get public => data['public'];
-  String get encryptedDescription => data['description'] ?? '';
+  String get description => data['description'] ?? '';
   String get url => data['url'];
   String get path => data['path'];
 

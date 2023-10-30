@@ -25,6 +25,7 @@ class MessageLookup extends MessageLookupByLibrary {
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "abort": MessageLookupByLibrary.simpleMessage("终止"),
+        "accessPassword": MessageLookupByLibrary.simpleMessage("访问密码"),
         "accessToken": MessageLookupByLibrary.simpleMessage("访问令牌"),
         "appName": MessageLookupByLibrary.simpleMessage("一起来记账"),
         "authenticationFailed": MessageLookupByLibrary.simpleMessage("认证失败"),

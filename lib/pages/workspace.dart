@@ -305,6 +305,7 @@ class CreateRepoDialog extends StatelessWidget {
   final summary = "".obs;
   final org = Org.gitee.obs;
   final public = true.obs;
+  final accessPwd = "".obs;
   final String workspaceId;
   CreateRepoDialog({super.key, required this.workspaceId});
 
@@ -334,6 +335,12 @@ class CreateRepoDialog extends StatelessWidget {
               value: summary,
             ),
             space,
+            Input(
+              obscureText: true,
+              value: accessPwd,
+              hint: S.current.accessPassword,
+            ),
+            space,
             Obx(() => SwitchListTile(
                 title: Text(S.current.public),
                 value: public.value,
@@ -356,7 +363,11 @@ class CreateRepoDialog extends StatelessWidget {
             );
             db.workspaces
                 .createBook(
-                    workspaceId, name.value, summary.value, public.value)
+                    accessPwd: accessPwd.value,
+                    workspaceId: workspaceId,
+                    name: name.value,
+                    summary: summary.value,
+                    public: public.value)
                 .then((value) {
               dismiss(context);
               eventbus.emit(Events.updateWorkspace);

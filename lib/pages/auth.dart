@@ -222,16 +222,18 @@ class VerifyView extends StatelessWidget {
       return;
     }
     final db = DB();
-    if (db.checkPassword(pwd)) {
-      toast.add(S.current.done, type: ToastType.success);
-      if (db.remoteRepo.lastOpenedIdFile.existsSync()) {
-        Get.offAllNamed("/workspace", arguments: db.lastOpenedId);
+    db.checkPassword(pwd).then((success) {
+      if (success) {
+        toast.add(S.current.done, type: ToastType.success);
+        if (db.remoteRepo.lastOpenedIdFile.existsSync()) {
+          Get.offAllNamed("/workspace", arguments: db.lastOpenedId);
+        } else {
+          Get.offAllNamed("/access_token");
+        }
       } else {
-        Get.offAllNamed("/access_token");
+        toast.add(S.current.authenticationFailed, type: ToastType.error);
       }
-    } else {
-      toast.add(S.current.authenticationFailed, type: ToastType.error);
-    }
-    fieldController.clear();
+      fieldController.clear();
+    });
   }
 }

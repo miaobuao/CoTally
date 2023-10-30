@@ -369,6 +369,16 @@ class S {
       args: [],
     );
   }
+
+  /// `Access Password`
+  String get accessPassword {
+    return Intl.message(
+      'Access Password',
+      name: 'accessPassword',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

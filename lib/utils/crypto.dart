@@ -1,13 +1,28 @@
+import 'package:cotally/utils/erros.dart';
 import "package:encrypt/encrypt.dart";
 import 'dart:typed_data';
 import 'dart:convert';
-import 'package:crypto/crypto.dart';
-import 'constants.dart';
+import "package:cryptography/dart.dart";
+import 'package:cryptography/cryptography.dart';
 
-Uint8List preparePwd(String pwd) {
-  final key = utf8.encode("$pwd.$SAFE_SALT");
-  final digital = sha256.convert(key);
-  return Uint8List.fromList(digital.bytes);
+const argon2id = DartArgon2id(
+  parallelism: 4,
+  memory: 10240,
+  iterations: 4,
+  hashLength: 32,
+);
+
+Future<List<int>> kdf(String pwd) async {
+  final newSecretKey = await argon2id.deriveKey(
+    secretKey: SecretKey(utf8.encode(pwd)),
+    nonce: utf8.encode("cc.idim.tollay"),
+  );
+  return await newSecretKey.extractBytes();
+}
+
+Future<Uint8List> preparePwd(String pwd) async {
+  final hashed = await kdf(pwd);
+  return Uint8List.fromList(hashed);
 }
 
 (Encrypter, IV) generateEncrypter(Uint8List pwd, {String? iv}) {
@@ -17,16 +32,14 @@ Uint8List preparePwd(String pwd) {
   );
 }
 
-String encryptByPwd(String pwd, String plainText) {
-  final key = preparePwd(pwd);
+String encryptedByDerivationKey(Uint8List key, String plain) {
   final (encrypter, iv) = generateEncrypter(key);
-  final encrypted = encrypter.encrypt(plainText, iv: iv);
+  final encrypted = encrypter.encrypt(plain, iv: iv);
   return "${iv.base64}.${encrypted.base64}";
 }
 
-String decryptByPwd(String pwd, String encrypted) {
+String decryptedByDerivationKey(Uint8List key, String encrypted) {
   try {
-    final key = preparePwd(pwd);
     final splitted = encrypted.split(".");
     encrypted = splitted[1];
     final (encrypter, iv) = generateEncrypter(key, iv: splitted[0]);
@@ -40,4 +53,12 @@ String decryptByPwd(String pwd, String encrypted) {
   }
 }
 
-class DecyptError extends Error {}
+Future<String> encryptByPwd(String pwd, String plainText) async {
+  final key = await preparePwd(pwd);
+  return encryptedByDerivationKey(key, plainText);
+}
+
+Future<String> decryptByPwd(String pwd, String encrypted) async {
+  final key = await preparePwd(pwd);
+  return decryptedByDerivationKey(key, encrypted);
+}
