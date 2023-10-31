@@ -6,7 +6,7 @@ import 'package:cotally/stores/stores.dart';
 import 'package:cotally/utils/api/base_api.dart';
 import 'package:cotally/utils/config.dart';
 import 'package:cotally/utils/constants.dart';
-import 'package:cotally/utils/erros.dart';
+import 'package:cotally/utils/extensions/file.dart';
 import 'package:cotally/utils/git.dart';
 import 'package:cotally/utils/models/config.dart';
 import 'package:cotally/utils/models/user.dart';
@@ -14,10 +14,10 @@ import 'package:cotally/utils/models/workspace.dart';
 import 'package:cotally/utils/types.dart';
 import 'package:hive/hive.dart';
 import 'package:path/path.dart';
-import 'package:bcrypt/bcrypt.dart';
 import 'package:uuid/uuid.dart';
 import 'crypto.dart';
 import './api/api.dart';
+import 'package:bcrypt/bcrypt.dart';
 
 const uuid = Uuid();
 typedef StringMapBox = CollectionBox<Map<String, dynamic>>;
@@ -29,25 +29,16 @@ class DB {
   static final DB instance = DB._();
   factory DB() => instance;
 
-  late Uint8List derivationKey;
   late final remoteRepo = RemoteRepo();
   late final users = Users();
-  late final workspaces = Workspaces();
   late final fs = FS();
-
-  String encrypt(String plain) {
-    return encryptedByDerivationKey(derivationKey, plain);
-  }
-
-  String decrypt(String encrypted) {
-    return decryptedByDerivationKey(derivationKey, encrypted);
-  }
+  late final workspaces = Workspaces();
 
   Future clear({bool? removePwd}) async {
     if ((removePwd ?? false) && pubKeyFile.existsSync()) {
       pubKeyFile.deleteSync();
     }
-    await remoteRepo.clear();
+    await config.clear();
     await users.box.clear();
     await workspaces.box.clear();
   }
@@ -58,26 +49,18 @@ class DB {
 
   Future registerPassword(String password) async {
     final key = await kdf(password);
-    await pubKeyFile.writeAsBytes(key);
+    final hashed = BCrypt.hashpw(convert.base64Encode(key), BCrypt.gensalt());
+    await pubKeyFile.writeAsString(hashed);
   }
 
-  Future<bool> checkPassword(String password) async {
-    if (!pubKeyFile.existsSync()) return false;
-    final hashed = pubKeyFile.readAsBytesSync();
-    final key = await preparePwd(password);
-    if (hashed == key) {
-      derivationKey = key;
-      return true;
+  Future<Uint8List?> checkPassword(String password) async {
+    if (!pubKeyFile.existsSync()) return null;
+    final hashed = await pubKeyFile.readAsString();
+    final key = await kdf(password);
+    if (BCrypt.checkpw(convert.base64Encode(key), hashed)) {
+      return key;
     }
-    return false;
-  }
-
-  String get lastOpenedId {
-    return remoteRepo.lastOpenedId;
-  }
-
-  set lastOpenedId(String id) {
-    remoteRepo.lastOpenedId = id;
+    return null;
   }
 }
 
@@ -101,24 +84,30 @@ class Workspaces {
     return JsonBox('workspaces');
   }
 
-  Future<WorkspaceModel> create(String id, Org org) async {
+  Future<WorkspaceModel> create({
+    required String id,
+    required Org org,
+  }) async {
     final workspace = WorkspaceModel(
       id: id,
       org: org,
       books: await listRepos(id),
     );
-    await save(id, workspace);
+    await save(id: id, workspace: workspace);
     return workspace;
   }
 
-  Future save(String id, WorkspaceModel workspace) {
+  Future save({
+    required String id,
+    required WorkspaceModel workspace,
+  }) {
     return box.save(id, workspace.toJson());
   }
 
   Future<WorkspaceModel?> open(String id, {bool save = false}) async {
     final json = await box.get(id.toString());
-    if (save && db.lastOpenedId != id) {
-      db.lastOpenedId = id;
+    if (save) {
+      config.lastOpenedId = id;
     }
     return json == null ? null : WorkspaceModel.fromJson(json);
   }
@@ -128,7 +117,7 @@ class Workspaces {
       if (workspace == null) return null;
       final repos = await listRepos(workspaceId);
       workspace.books = repos;
-      await save(workspaceId, workspace);
+      await save(id: workspaceId, workspace: workspace);
       return workspace;
     });
     return space;
@@ -155,21 +144,21 @@ class Workspaces {
     if (book == null) return null;
     final workspace = await open(workspaceId);
     workspace!.books.add(book);
-    await save(workspaceId, workspace);
+    await save(id: workspaceId, workspace: workspace);
     return book;
   }
 
-  Future<bool> removeBook(
-    String workspaceId,
-    BookModel book,
-  ) async {
+  Future<bool> removeBook({
+    required String workspaceId,
+    required BookModel book,
+  }) async {
     final api = await getApi(workspaceId);
     final workspace = await open(workspaceId);
     final idx = workspace!.books.indexWhere((element) =>
         element.namespace == book.namespace && element.name == book.name);
     if (idx == -1) return true;
     workspace.books.removeAt(idx);
-    await save(workspaceId, workspace);
+    await save(id: workspaceId, workspace: workspace);
     return api == null
         ? false
         : await api.deleteRepo(
@@ -194,8 +183,7 @@ class Workspaces {
   }
 
   Future<BaseRepoApi?> getApi(String id) async {
-    final repo =
-        await db.remoteRepo.get(id).then((value) => value?.decrypt(db.decrypt));
+    final repo = await db.remoteRepo.get(id);
     if (repo == null) return null;
     final api = apiOf(repo.org);
     api.accessToken = repo.accessToken;
@@ -211,25 +199,6 @@ class Workspaces {
 class RemoteRepo {
   JsonBox get box {
     return JsonBox('tokens');
-  }
-
-  clear() {
-    if (lastOpenedIdFile.existsSync()) {
-      lastOpenedIdFile.deleteSync();
-    }
-  }
-
-  File get lastOpenedIdFile {
-    final path = join(config.basePath, "lastOpenedRepo.id");
-    return File(path);
-  }
-
-  String get lastOpenedId {
-    return lastOpenedIdFile.readAsStringSync();
-  }
-
-  set lastOpenedId(String id) {
-    lastOpenedIdFile.writeAsStringSync(id);
   }
 
   Future<DecryptedRemoteRepoDataModel?> add({
@@ -257,17 +226,21 @@ class RemoteRepo {
       updateTime: DateTime.now(),
       ownerId: ownerId,
     );
-    await box.save(repo.id, repo.encrypt(db.encrypt).toJson());
-    await db.workspaces.create(workspaceId, org);
-    if (!lastOpenedIdFile.existsSync()) {
-      lastOpenedId = workspaceId;
+    await box.save(repo.id,
+        repo.encrypt(getEncryptFunc(config.tokenDerivatinoKey)).toJson());
+    await db.workspaces.create(id: workspaceId, org: org);
+    if (config.lastOpenedIdFile.notExistsSync()) {
+      config.lastOpenedId = workspaceId;
     }
     return repo;
   }
 
-  Future<EncryptedRemoteRepoDataModel?> get(String id) async {
+  Future<RemoteRepoDataModel?> get(String id) async {
     final json = await box.get(id);
-    return json == null ? null : EncryptedRemoteRepoDataModel.fromJson(json);
+    final dk = config.tokenDerivatinoKey;
+    return json == null
+        ? null
+        : EncryptedRemoteRepoDataModel.fromJson(json).decrypt(dk);
   }
 }
 
@@ -303,15 +276,6 @@ class JsonBox {
 }
 
 class FS {
-  String getSummary(BookModel book) {
-    final file = book.summaryFile;
-    if (file.existsSync()) {
-      final summary = file.readAsStringSync();
-      return db.decrypt(summary);
-    }
-    return '';
-  }
-
   Future<bool> removeLocal(BookModel book) async {
     final dir = book.directory;
     try {
@@ -328,7 +292,10 @@ class FS {
 
   Future<bool> removeRemote(String workspaceId, BookModel book) async {
     return db.workspaces
-        .removeBook(workspaceId, book)
+        .removeBook(
+          workspaceId: workspaceId,
+          book: book,
+        )
         .then((value) async => value ? await removeLocal(book) : value);
   }
 

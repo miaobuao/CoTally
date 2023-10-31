@@ -12,17 +12,12 @@ const argon2id = DartArgon2id(
   hashLength: 32,
 );
 
-Future<List<int>> kdf(String pwd) async {
+Future<Uint8List> kdf(String pwd) async {
   final newSecretKey = await argon2id.deriveKey(
     secretKey: SecretKey(utf8.encode(pwd)),
     nonce: utf8.encode("cc.idim.tollay"),
   );
-  return await newSecretKey.extractBytes();
-}
-
-Future<Uint8List> preparePwd(String pwd) async {
-  final hashed = await kdf(pwd);
-  return Uint8List.fromList(hashed);
+  return Uint8List.fromList(await newSecretKey.extractBytes());
 }
 
 (Encrypter, IV) generateEncrypter(Uint8List pwd, {String? iv}) {
@@ -54,11 +49,19 @@ String decryptedByDerivationKey(Uint8List key, String encrypted) {
 }
 
 Future<String> encryptByPwd(String pwd, String plainText) async {
-  final key = await preparePwd(pwd);
+  final key = await kdf(pwd);
   return encryptedByDerivationKey(key, plainText);
 }
 
 Future<String> decryptByPwd(String pwd, String encrypted) async {
-  final key = await preparePwd(pwd);
+  final key = await kdf(pwd);
   return decryptedByDerivationKey(key, encrypted);
+}
+
+String Function(String) getDecryptFunc(Uint8List key) {
+  return (String value) => decryptedByDerivationKey(key, value);
+}
+
+String Function(String) getEncryptFunc(Uint8List key) {
+  return (String value) => encryptedByDerivationKey(key, value);
 }

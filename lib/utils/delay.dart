@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 void delayedFocus(
@@ -20,4 +22,27 @@ void delayedFocus(
       ), () {
     focusNode.requestFocus();
   });
+}
+
+Future<T> waitFor<T>(
+  T? value, {
+  int days = 0,
+  int hours = 0,
+  int minutes = 0,
+  int seconds = 0,
+  int milliseconds = 10,
+  int microseconds = 0,
+}) async {
+  final duration = Duration(
+    days: days,
+    hours: hours,
+    minutes: minutes,
+    seconds: seconds,
+    milliseconds: milliseconds,
+    microseconds: microseconds,
+  );
+  while (value == null) {
+    await Future.delayed(duration);
+  }
+  return value;
 }

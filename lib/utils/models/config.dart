@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:cotally/utils/constants.dart';
+import 'package:cotally/utils/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'config.g.dart';
@@ -43,7 +46,8 @@ class EncryptedRemoteRepoDataModel extends RemoteRepoDataModel {
     required super.ownerId,
   });
 
-  DecryptedRemoteRepoDataModel decrypt(String Function(String) decryptFunc) {
+  DecryptedRemoteRepoDataModel decrypt(Uint8List dk) {
+    final decryptFunc = getDecryptFunc(dk);
     return DecryptedRemoteRepoDataModel(
       id: id,
       org: org,

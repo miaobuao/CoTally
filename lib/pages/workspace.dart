@@ -120,10 +120,8 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
             final book = books[index];
             bool cached = book.directory.existsSync();
             if (cached) {
-              final summary = db.fs.getSummary(book);
               child = ListTile(
                 title: Text("${book.namespace}/${book.name}"),
-                subtitle: summary.isEmpty ? null : Text(summary),
               );
             } else {
               child = InkWell(
@@ -287,7 +285,7 @@ class WorkspaceInfo {
     required this.org,
   });
 
-  Future<EncryptedRemoteRepoDataModel?> get repo {
+  Future<RemoteRepoDataModel?> get repo {
     return db.remoteRepo.get(id);
   }
 

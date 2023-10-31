@@ -1,6 +1,8 @@
 // ignore_for_file: must_be_immutable
 import 'dart:async';
 import 'package:cotally/generated/l10n.dart';
+import 'package:cotally/utils/config.dart';
+import 'package:cotally/utils/models/workspace.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cotally/component/button.dart';
@@ -222,16 +224,20 @@ class VerifyView extends StatelessWidget {
       return;
     }
     final db = DB();
-    db.checkPassword(pwd).then((success) {
-      if (success) {
-        toast.add(S.current.done, type: ToastType.success);
-        if (db.remoteRepo.lastOpenedIdFile.existsSync()) {
-          Get.offAllNamed("/workspace", arguments: db.lastOpenedId);
-        } else {
-          Get.offAllNamed("/access_token");
-        }
-      } else {
+    db.checkPassword(pwd).then((key) {
+      if (key == null) {
         toast.add(S.current.authenticationFailed, type: ToastType.error);
+      } else {
+        config.tokenDerivatinoKey = key;
+        toast.add(S.current.done, type: ToastType.success);
+        final lastOpened = config.lastOpenedId;
+        if (lastOpened == null) {
+          Get.offAllNamed("/access_token");
+        } else {
+          Get.offAllNamed("/workspace", parameters: {
+            "id": lastOpened,
+          });
+        }
       }
       fieldController.clear();
     });
