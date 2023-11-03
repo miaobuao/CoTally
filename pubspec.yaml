@@ -57,8 +57,12 @@ dependencies:
   sqlite3: ^2.1.0
   skeletonizer: ^0.8.0
   event_bus: ^2.0.0
-  libgit2dart: ^1.2.2
   cryptography: ^2.7.0
+  dart_git:
+    git: https://github.com/GitJournal/dart-git.git
+  git_bindings:
+    git: https://github.com/GitJournal/git_bindings.git
+  rw_git: ^1.0.3
 
 dev_dependencies:
   flutter_test:

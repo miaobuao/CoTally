@@ -5,14 +5,14 @@ import 'package:cotally/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fc/flutter_fc.dart';
 
-final LoadingDialog = defineFC(((props) => AlertDialog(
+final LoadingDialog = defineFC(((String? tips) => AlertDialog(
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           const CircularProgressIndicator(),
           Padding(
             padding: const EdgeInsets.only(top: 26.0),
-            child: Text(S.current.loading),
+            child: Text(tips ?? S.current.loading),
           )
         ],
       ),

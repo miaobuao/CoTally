@@ -227,7 +227,7 @@ class RemoteRepo {
       ownerId: ownerId,
     );
     await box.save(repo.id,
-        repo.encrypt(getEncryptFunc(config.tokenDerivatinoKey)).toJson());
+        repo.encrypt(getEncryptFunc(config.tokenDerivationKey)).toJson());
     await db.workspaces.create(id: workspaceId, org: org);
     if (config.lastOpenedIdFile.notExistsSync()) {
       config.lastOpenedId = workspaceId;
@@ -237,7 +237,7 @@ class RemoteRepo {
 
   Future<RemoteRepoDataModel?> get(String id) async {
     final json = await box.get(id);
-    final dk = config.tokenDerivatinoKey;
+    final dk = config.tokenDerivationKey;
     return json == null
         ? null
         : EncryptedRemoteRepoDataModel.fromJson(json).decrypt(dk);

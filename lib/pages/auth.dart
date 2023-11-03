@@ -1,8 +1,8 @@
 // ignore_for_file: must_be_immutable
 import 'dart:async';
+import 'package:cotally/component/dialog.dart';
 import 'package:cotally/generated/l10n.dart';
 import 'package:cotally/utils/config.dart';
-import 'package:cotally/utils/models/workspace.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cotally/component/button.dart';
@@ -19,28 +19,30 @@ class AuthPage extends StatefulWidget {
 }
 
 class _AuthPageState extends State<AuthPage> {
-  final pubKeyFileExists = false.obs;
+  bool pubKeyFileExists = db.pubKeyFile.existsSync();
 
   @override
   void initState() {
-    Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (DB().pubKeyFile.existsSync()) {
-        pubKeyFileExists.value = true;
-      } else {
-        pubKeyFileExists.value = false;
-      }
+    Timer.periodic(const Duration(milliseconds: 200), (timer) {
+      updateKeyState(db.pubKeyFile.existsSync());
       if (!mounted) {
         timer.cancel();
       }
     });
-    pubKeyFileExists.value = DB().pubKeyFile.existsSync();
     super.initState();
+  }
+
+  updateKeyState(bool value) {
+    if (value != pubKeyFileExists) {
+      setState(() {
+        pubKeyFileExists = value;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Obx(
-        () => pubKeyFileExists.value ? VerifyView() : InputPasswordView());
+    return pubKeyFileExists ? VerifyView() : InputPasswordView();
   }
 }
 
@@ -62,7 +64,9 @@ class InputPasswordView extends StatelessWidget {
       body: Obx(() => Stepper(
             currentStep: stepperIndex.value,
             onStepCancel: onReset,
-            onStepContinue: onContinue,
+            onStepContinue: () {
+              onContinue(context);
+            },
             steps: [
               Step(
                 title: H3(S.current.enterPwd),
@@ -82,7 +86,7 @@ class InputPasswordView extends StatelessWidget {
                           maxLength: 32,
                           inputFormatters: Aes256PwdInputFormatter,
                           onSubmitted: (value) {
-                            onContinue();
+                            onContinue(context);
                           },
                         ).marginOnly(top: 10),
                       ],
@@ -108,7 +112,7 @@ class InputPasswordView extends StatelessWidget {
                           inputFormatters: Aes256PwdInputFormatter,
                           focusNode: secondFocusNode,
                           onSubmitted: (value) {
-                            onContinue();
+                            onContinue(context);
                           },
                         ).marginOnly(top: 10),
                       ],
@@ -131,7 +135,7 @@ class InputPasswordView extends StatelessWidget {
     toast.clear();
   }
 
-  void onContinue() {
+  void onContinue(BuildContext context) {
     if (stepperIndex.value == 0) {
       if (firstController.text.isEmpty) {
         toast.add(S.current.cannotBeEmpty(S.current.password),
@@ -158,15 +162,14 @@ class InputPasswordView extends StatelessWidget {
       }
       secondController.clear();
       secondFocusNode.unfocus();
-      toast.add(S.current.done, type: ToastType.success);
-      onSubmit();
-    }
-  }
-
-  void onSubmit() {
-    final db = DB();
-    if (pwd1 == pwd2 && pwd1.isNotEmpty) {
-      db.registerPassword(pwd1);
+      final db = DB();
+      if (pwd1 == pwd2 && pwd1.isNotEmpty) {
+        showDialog(context: context, builder: (context) => LoadingDialog());
+        db.registerPassword(pwd1).then((value) {
+          Navigator.pop(context);
+          toast.add(S.current.done, type: ToastType.success);
+        });
+      }
     }
   }
 }
@@ -203,7 +206,7 @@ class VerifyView extends StatelessWidget {
                 buttons: Buttons.submit | Buttons.reset,
                 onSubmit: () {
                   pwd = fieldController.text;
-                  submit();
+                  submit(context);
                 },
                 onReset: () {
                   fieldController.clear();
@@ -217,26 +220,26 @@ class VerifyView extends StatelessWidget {
     );
   }
 
-  void submit() {
+  void submit(BuildContext context) {
     if (pwd.isEmpty) {
       toast.add(S.current.cannotBeEmpty(S.current.password),
           type: ToastType.warning);
       return;
     }
     final db = DB();
+    showDialog(context: context, builder: (context) => LoadingDialog());
     db.checkPassword(pwd).then((key) {
+      Navigator.pop(context);
       if (key == null) {
         toast.add(S.current.authenticationFailed, type: ToastType.error);
       } else {
-        config.tokenDerivatinoKey = key;
+        config.tokenDerivationKey = key;
         toast.add(S.current.done, type: ToastType.success);
         final lastOpened = config.lastOpenedId;
         if (lastOpened == null) {
           Get.offAllNamed("/access_token");
         } else {
-          Get.offAllNamed("/workspace", parameters: {
-            "id": lastOpened,
-          });
+          Get.offAllNamed("/workspace");
         }
       }
       fieldController.clear();

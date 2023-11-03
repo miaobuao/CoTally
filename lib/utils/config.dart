@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:path/path.dart';
 
@@ -10,8 +11,9 @@ class Config {
   factory Config() => instance;
 
   late String basePath;
-  late Uint8List tokenDerivatinoKey;
+  late Uint8List tokenDerivationKey;
   late final BoxCollection collection;
+  final currentWorkspaceId = ''.obs;
 
   File get lastOpenedIdFile {
     final path = join(config.basePath, "lastOpenedRepo.id");
@@ -31,6 +33,7 @@ class Config {
       lastOpenedIdFile.deleteSync();
     } else {
       lastOpenedIdFile.writeAsStringSync(id);
+      currentWorkspaceId.value = id;
     }
   }
 

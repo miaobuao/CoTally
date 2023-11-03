@@ -6,6 +6,7 @@ import 'package:cotally/component/toast.dart';
 import 'package:cotally/generated/l10n.dart';
 import 'package:cotally/stores/stores.dart';
 import 'package:cotally/style/colors.dart';
+import 'package:cotally/utils/config.dart';
 import 'package:cotally/utils/constants.dart';
 import 'package:cotally/utils/datetime.dart';
 import 'package:cotally/utils/db.dart';
@@ -32,8 +33,6 @@ class WorkspacePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String workspaceId = Get.arguments;
-
     return Scaffold(
       appBar: AppBar(
         title: Text(S.current.appName),
@@ -47,7 +46,7 @@ class WorkspacePage extends StatelessWidget {
               context: context,
               builder: (context) {
                 return CreateRepoDialog(
-                  workspaceId: workspaceId,
+                  workspaceId: config.lastOpenedId!,
                 );
               });
         },
@@ -69,10 +68,9 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
   WorkspaceModel? workspace;
   bool loading = false;
   List<BookModel> books = [];
-  late final String workspaceId;
 
   update() {
-    db.workspaces.open(workspaceId).then((value) {
+    db.workspaces.open(config.currentWorkspaceId.value).then((value) {
       if (value == null) return;
       workspace = value;
       books = value.books;
@@ -87,11 +85,10 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
   void initState() {
     super.initState();
 
-    workspaceId = Get.arguments;
     eventbus.listen(Events.updateWorkspace, update);
 
     loading = true;
-    db.workspaces.open(workspaceId).then((value) {
+    db.workspaces.open(config.currentWorkspaceId.value).then((value) {
       if (value == null) return;
       workspace = value;
       books = value.books;
@@ -110,7 +107,7 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
     }
     return RefreshIndicator(
         onRefresh: () async {
-          await db.workspaces.updateBooksOf(workspaceId);
+          await db.workspaces.updateBooksOf(config.currentWorkspaceId.value);
           eventbus.emit(Events.updateWorkspace);
         },
         child: ListView.builder(
@@ -122,6 +119,9 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
             if (cached) {
               child = ListTile(
                 title: Text("${book.namespace}/${book.name}"),
+                onTap: () {
+                  openBook(context, book);
+                },
               );
             } else {
               child = InkWell(
@@ -130,6 +130,7 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
                   title: Text("${book.namespace}/${book.name}"),
                 ),
                 onTap: () {
+                  downloadBook(context, book);
                   // showDialog(context: context, builder: builder)
                 },
               );
@@ -149,6 +150,14 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
             );
           },
         ));
+  }
+
+  openBook(BuildContext context, BookModel book) {}
+  downloadBook(BuildContext context, BookModel book) {
+    showDialog(context: context, builder: (context) => LoadingDialog());
+    db.fs.clone(book).then((value) {
+      toast.add(S.current.done, type: ToastType.success);
+    }).whenComplete(() => Navigator.pop(context));
   }
 
   Future<bool> showRemoveAlertDialog(
@@ -209,7 +218,7 @@ class _WorkspaceBodyState extends State<WorkspaceBody> {
         });
         flag = true;
       } else if (value == Location.both) {
-        db.fs.removeRemote(workspaceId, book).then((value) {
+        db.fs.removeRemote(config.currentWorkspaceId.value, book).then((value) {
           toast.add(S.current.done, type: ToastType.success);
         }).onError((error, stackTrace) {
           toast.add(S.current.failed, type: ToastType.error);
@@ -310,7 +319,7 @@ class CreateRepoDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const space = SizedBox(
-      height: 10,
+      height: 5.5,
     );
     return AlertDialog(
       content: Column(
@@ -319,7 +328,7 @@ class CreateRepoDialog extends StatelessWidget {
           children: [
             Text(
               S.current.createBook,
-              style: const TextStyle(fontSize: 24),
+              style: const TextStyle(fontSize: 18),
             ),
             space,
             Input(

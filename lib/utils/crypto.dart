@@ -6,9 +6,9 @@ import "package:cryptography/dart.dart";
 import 'package:cryptography/cryptography.dart';
 
 const argon2id = DartArgon2id(
-  parallelism: 4,
-  memory: 10240,
-  iterations: 4,
+  parallelism: 2,
+  memory: 10000,
+  iterations: 2,
   hashLength: 32,
 );
 
